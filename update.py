@@ -2,6 +2,25 @@
 
 import shutil
 
+#===========================
+# IMPORTANT: a file named .nojekyll must be in the staging repository
+# This file can be empty.
+#===========================
+
+# Everything is going to be served from the github site; we
+# thus use the offline version (which includes all relevant libraries
+# in the repository instead of using CDN versions) and rename it so
+# that it is recognized as the default page by Github Pages.
+shutil.copy2("../reeborg/reeborg_offline.html", "index.html")
+
+# other single main file
+shutil.copy2("../reeborg/build/reeborg.js", "build/reeborg.js")
+
+# We use shutil to copy entire directories.
+# However, shutil.copytree requires that no such directory exist already;
+# so, we start by removing the old one with the same nome,
+# not worrying if it did not exists before
+
 def update_dir(name):
     reeborg = "../reeborg/"
     print("Updating directory", name)
@@ -14,11 +33,6 @@ def update_dir(name):
         shutil.copytree(reeborg + name, name)
     except FileExistsError:
         print("Error:", name, "already exists and could not be copied.")
-
-
-shutil.copy2("../reeborg/reeborg_offline.html", "index.html")
-
-shutil.copy2("../reeborg/build/reeborg.js", "build/reeborg.js")
 
 update_dir("offline/")
 update_dir("src/blockly/")
