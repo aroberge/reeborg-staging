@@ -10479,7 +10479,7 @@ function import_progress () {
             }
             Object.assign(RUR.state.user_progress, progress);
             localStorage.setItem("user-progress", JSON.stringify(RUR.state.user_progress));
-            update_world_selector();
+            refresh_world_selector();
             fileInput.value = '';
         };
 
@@ -10488,7 +10488,7 @@ function import_progress () {
     });
 }
 
-function update_world_selector(saved_progress) {
+function refresh_world_selector(saved_progress) {
     "use strict";
     var badges, menu, world_name, options = $("#select-world")[0].options;
     menu = RUR.state.current_menu;
@@ -15866,7 +15866,7 @@ ui_en["SAVE WORLD EXPLAIN"] = "Saves the world (as a json object) to a file on y
 ui_en["PROGRESS SECTION TITLE"] = "Keeping track of tasks solved";
 ui_en["PROGRESS EXPLAIN"] = "Tasks solved are marked with " + RUR.CHECKMARK +
     "in the world selector and the information is saved in your browser. If you use a different browser, " +
-    "the tasks you have already solved will not be shown. " +
+    "the tasks you have already solved using a different browser will not be shown. " +
     "If you click on the save button below, a file named progress.json will be saved with the tasks solved " +
     "recorded in the current browser. You can import this file in a different browser so that your progress can be updated.";
 ui_en["SAVE PROGRESS"] = "Save";
@@ -16650,7 +16650,7 @@ ui_ko["SAVE WORLD EXPLAIN"] = "(json 확장자) 월드를 컴퓨터에 저장" +
 ui_ko["PROGRESS SECTION TITLE"] = "Keeping track of tasks solved";
 ui_ko["PROGRESS EXPLAIN"] = "Tasks solved are marked with " + RUR.CHECKMARK +
     "in the world selector and the information is saved in your browser. If you use a different browser, " +
-    "the tasks you have already solved will not be shown. " +
+    "the tasks you have already solved using a different browser will not be shown. " +
     "If you click on the save button below, a file named progress.json will be saved with the tasks solved " +
     "recorded in the current browser. You can import this file in a different browser so that your progress can be updated.";
 ui_ko["SAVE PROGRESS"] = "Save";
@@ -17041,7 +17041,7 @@ ui_pl["SAVE WORLD EXPLAIN"] = "Zapisz świat (jako json obiekt) w pliku na Twoim
 ui_pl["PROGRESS SECTION TITLE"] = "Keeping track of tasks solved";
 ui_pl["PROGRESS EXPLAIN"] = "Tasks solved are marked with " + RUR.CHECKMARK +
     "in the world selector and the information is saved in your browser. If you use a different browser, " +
-    "the tasks you have already solved will not be shown. " +
+    "the tasks you have already solved using a different browser will not be shown. " +
     "If you click on the save button below, a file named progress.json will be saved with the tasks solved " +
     "recorded in the current browser. You can import this file in a different browser so that your progress can be updated.";
 ui_pl["SAVE PROGRESS"] = "Save";
