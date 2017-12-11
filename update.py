@@ -1,6 +1,16 @@
 ''' Updates the staging repo from the main development site'''
 
 import shutil
+import os
+from sys import exit
+from os.path import getctime 
+
+reeborg_age = getctime("../reeborg/reeborg.html")
+reeborg_offline_age = getctime("../reeborg/reeborg_offline.html")
+
+if reeborg_age > reeborg_offline_age:
+    print("Offline version too old; need to run make in main repo.")
+    exit()
 
 #===========================
 # IMPORTANT: a file named .nojekyll must be in the staging repository
@@ -43,3 +53,7 @@ update_dir("src/libraries/")
 update_dir("src/python/")
 update_dir("src/sounds/")
 update_dir("worlds/")
+
+os.system('git add *')
+os.system('git commit -m "automatic update"')
+os.system('git push')
