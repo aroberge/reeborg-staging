@@ -7917,16 +7917,12 @@ RUR.reset_world = function() {
 
     RUR.set_current_world(RUR.clone_world(RUR.WORLD_BEFORE_ONLOAD));
     world = RUR.get_current_world();
-    // RUR.set_world_size(world.cols, world.rows); // in case the size was changed
-    //                                     // dynamically in pre or main editor
 
-    if (RUR.state.run_button_clicked) { // do not process_onload
-        return;
-    }
+    // if (RUR.state.run_button_clicked) { // do not process_onload
+    //     return;
+    // }
 
     RUR.world_utils.process_onload();
-    // Does the following need to be kept out of reset_pre_run_defaults?
-    //RUR.state.code_evaluated = false;
 };
 
 },{"./../drawing/visible_robot.js":9,"./../editors/create.js":11,"./../rur.js":38,"./../world_utils/import_world.js":82}],35:[function(require,module,exports){
@@ -8623,7 +8619,7 @@ RUR.state.x = undefined; // recorded mouse clicks
 RUR.state.y = undefined;
 
 RUR.state.run_button_clicked = false;
-RUR.state.stop_called = false;
+// RUR.state.stop_called = false;
 RUR.state.playback = false;  // from pause/play/stop
 RUR.state.highlight = true;
 RUR.state.watch_vars = false;
@@ -9356,7 +9352,11 @@ function load_user_worlds() {
 }
 
 RUR.make_default_menu = function(language) {
-    RUR.state.creating_menu = true;
+    if (RUR.state.session_initialized) {
+        RUR.state.world_url = undefined;
+        RUR.state.world_name = undefined;
+        RUR.state.current_menu = undefined;   
+    }
     switch (language) {
         case 'en':
         case 'fr-en':
@@ -9370,6 +9370,7 @@ RUR.make_default_menu = function(language) {
         default: 
             RUR.load_world_file(RUR.BASE_URL + "/worlds/menus/default_menu_en.json");
     }
+
 };
 
 },{"./../rur.js":38,"./../storage/storage.js":39,"./../translator.js":40,"./world_select.js":57}],43:[function(require,module,exports){
@@ -9711,6 +9712,7 @@ RUR.listeners['human-language'] = function() {
     msg.update_ui(lang);
     update_commands(lang);
     update_home_url(lang);
+    RUR.make_default_menu(lang);
 
     RUR.blockly.init();
 
@@ -10234,6 +10236,7 @@ record_id("reload2");
 function set_ui_ready_to_run () {
     RUR.state.prevent_playback = false;
     $("#stop").attr("disabled", "true");
+    // RUR.state.stop_called = false;
     $("#pause").attr("disabled", "true");
     $("#run").removeAttr("disabled");
     $("#step").removeAttr("disabled");
@@ -10290,11 +10293,11 @@ var record_id = require("./../../lang/msg.js").record_id;
 record_id("run");
 
 RUR.listeners.run = function () {
-    RUR.state.run_button_clicked = true;
-    if (RUR.state.stop_called){
-        RUR.state.stop_called = false;
-        RUR.reload();
-    }
+    // RUR.state.run_button_clicked = true;
+    // if (RUR.state.stop_called){
+    //     RUR.state.stop_called = false;
+    //     RUR.reload();
+    // }
     $("#stop").removeAttr("disabled");
     $("#pause").removeAttr("disabled");
     $("#run").attr("disabled", "true");
@@ -10314,7 +10317,7 @@ RUR.listeners.run = function () {
 
     clearTimeout(RUR._TIMER);
     RUR.runner.run(RUR.play);
-    RUR.state.run_button_clicked = false;
+    // RUR.state.run_button_clicked = false;
 };
 
 },{"./../../lang/msg.js":85,"./../playback/play.js":22,"./../runner/runner.js":36,"./../rur.js":38,"./reload.js":50}],52:[function(require,module,exports){
@@ -10330,7 +10333,7 @@ record_id("reverse-step");
 
 RUR.listeners.step = function () {
     RUR.runner.run(RUR.rec.display_frame);
-    RUR.state.stop_called = false;
+    // RUR.state.stop_called = false;
     $("#stop").removeAttr("disabled");
     $("#reverse-step").removeAttr("disabled");
     $("#frame-selector").removeAttr("disabled").addClass("enabled").removeClass("disabled");
@@ -10352,7 +10355,7 @@ RUR.listeners.reverse_step = function () {
     }
     $("#frame-selector").removeAttr("disabled").addClass("enabled").removeClass("disabled");
     RUR.rec.display_frame(); // increments the current_frame_no by 1
-    RUR.state.stop_called = false;
+    // RUR.state.stop_called = false;
     $("#stop").removeAttr("disabled");
     clearTimeout(RUR._TIMER);
 };
@@ -10369,11 +10372,11 @@ RUR.stop = function () {
     clearTimeout(RUR._TIMER);
     $("#stop").attr("disabled", "true");
     $("#pause").attr("disabled", "true");
-    $("#run").removeAttr("disabled");
+    $("#run").attr("disabled", "true");
     $("#step").attr("disabled", "true");
     $("#reverse-step").attr("disabled", "true");
     $("#reload").removeAttr("disabled");
-    RUR.state.stop_called = true;
+    // RUR.state.stop_called = true;
 };
 
 },{"./../../lang/msg.js":85,"./../rur.js":38}],54:[function(require,module,exports){
@@ -10469,10 +10472,9 @@ RUR.update_progress = function(){
     }
 
     RUR.utils.ensure_key_for_array_exists(RUR.state.user_progress, RUR.state.current_menu);
-    if (RUR.state.user_progress[RUR.state.current_menu].includes(world_name)) {
-        return;
+    if (!RUR.state.user_progress[RUR.state.current_menu].includes(world_name)) {
+        RUR.state.user_progress[RUR.state.current_menu].push(world_name);
     }
-    RUR.state.user_progress[RUR.state.current_menu].push(world_name);
     update_world_selector(world_name);
     localStorage.setItem("user-progress", JSON.stringify(RUR.state.user_progress));
 };
