@@ -7917,11 +7917,6 @@ RUR.reset_world = function() {
 
     RUR.set_current_world(RUR.clone_world(RUR.WORLD_BEFORE_ONLOAD));
     world = RUR.get_current_world();
-
-    // if (RUR.state.run_button_clicked) { // do not process_onload
-    //     return;
-    // }
-
     RUR.world_utils.process_onload();
 };
 
@@ -8619,7 +8614,6 @@ RUR.state.x = undefined; // recorded mouse clicks
 RUR.state.y = undefined;
 
 RUR.state.run_button_clicked = false;
-// RUR.state.stop_called = false;
 RUR.state.playback = false;  // from pause/play/stop
 RUR.state.highlight = true;
 RUR.state.watch_vars = false;
@@ -10236,7 +10230,6 @@ record_id("reload2");
 function set_ui_ready_to_run () {
     RUR.state.prevent_playback = false;
     $("#stop").attr("disabled", "true");
-    // RUR.state.stop_called = false;
     $("#pause").attr("disabled", "true");
     $("#run").removeAttr("disabled");
     $("#step").removeAttr("disabled");
@@ -10293,11 +10286,6 @@ var record_id = require("./../../lang/msg.js").record_id;
 record_id("run");
 
 RUR.listeners.run = function () {
-    // RUR.state.run_button_clicked = true;
-    // if (RUR.state.stop_called){
-    //     RUR.state.stop_called = false;
-    //     RUR.reload();
-    // }
     $("#stop").removeAttr("disabled");
     $("#pause").removeAttr("disabled");
     $("#run").attr("disabled", "true");
@@ -10317,7 +10305,6 @@ RUR.listeners.run = function () {
 
     clearTimeout(RUR._TIMER);
     RUR.runner.run(RUR.play);
-    // RUR.state.run_button_clicked = false;
 };
 
 },{"./../../lang/msg.js":85,"./../playback/play.js":22,"./../runner/runner.js":36,"./../rur.js":38,"./reload.js":50}],52:[function(require,module,exports){
@@ -10333,7 +10320,6 @@ record_id("reverse-step");
 
 RUR.listeners.step = function () {
     RUR.runner.run(RUR.rec.display_frame);
-    // RUR.state.stop_called = false;
     $("#stop").removeAttr("disabled");
     $("#reverse-step").removeAttr("disabled");
     $("#frame-selector").removeAttr("disabled").addClass("enabled").removeClass("disabled");
@@ -10355,7 +10341,6 @@ RUR.listeners.reverse_step = function () {
     }
     $("#frame-selector").removeAttr("disabled").addClass("enabled").removeClass("disabled");
     RUR.rec.display_frame(); // increments the current_frame_no by 1
-    // RUR.state.stop_called = false;
     $("#stop").removeAttr("disabled");
     clearTimeout(RUR._TIMER);
 };
@@ -10376,7 +10361,6 @@ RUR.stop = function () {
     $("#step").attr("disabled", "true");
     $("#reverse-step").attr("disabled", "true");
     $("#reload").removeAttr("disabled");
-    // RUR.state.stop_called = true;
 };
 
 },{"./../../lang/msg.js":85,"./../rur.js":38}],54:[function(require,module,exports){
