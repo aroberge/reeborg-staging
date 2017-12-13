@@ -3,12 +3,13 @@
 import shutil
 import os
 from sys import exit
-from os.path import getctime 
+from os.path import getmtime # modification time
 
-reeborg_age = getctime("../reeborg/reeborg.html")
-reeborg_offline_age = getctime("../reeborg/reeborg_offline.html")
+reeborg_age = getmtime("../reeborg/reeborg.html")
+build_age = getmtime("../reeborg/build/reeborg.js")
+reeborg_offline_age = getmtime("../reeborg/reeborg_offline.html")
 
-if reeborg_age > reeborg_offline_age:
+if (reeborg_age > reeborg_offline_age) or (build_age - reeborg_offline_age > 10):
     print("Offline version too old; need to run make in main repo.")
     exit()
 
