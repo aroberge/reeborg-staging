@@ -16227,6 +16227,10 @@ ui_en["Execution ended before the <em>Post</em> code was executed."] = "Executio
 
 ui_en["Difficulty level"] = "Difficulty level";
 
+ui_en["Expected result"] = "Expected result";
+ui_en["Differences highlighted"] = "Differences highlighted";
+ui_en["Actual result"] = "Actual result";
+
 },{}],87:[function(require,module,exports){
 // the following is used in a few places below
 var mac_user_save_files_fr = ' <b>Utilisateurs Mac:</b> consultez <a href="https://github.com/aroberge/reeborg/blob/master/dev_tools/known_problems.md" target="_blank" rel="noopener">Problèmes connus</a>.';
@@ -16618,6 +16622,10 @@ ui_fr["You are not allowed to use <code>done</code> in this world!"] = "Il n'est
 ui_fr["Execution ended before the <em>Post</em> code was executed."] = "L'exécution du programme a terminé avant que le code <em>Post</em> ne soit interprété.";
 
 ui_fr["Difficulty level"] = "Niveau de difficulté";
+
+ui_fr["Expected result"] = "Résultat attendu";
+ui_fr["Differences highlighted"] = "Différences observées";
+ui_fr["Actual result"] = "Résultat observé";
 
 },{}],88:[function(require,module,exports){
 // the following is used in a few places below
@@ -17012,6 +17020,10 @@ ui_ko["Execution ended before the <em>Post</em> code was executed."] = "Executio
 
 ui_ko["Difficulty level"] = "Difficulty level";
 
+ui_ko["Expected result"] = "Expected result";
+ui_ko["Differences highlighted"] = "Differences highlighted";
+ui_ko["Actual result"] = "Actual result";
+
 },{}],89:[function(require,module,exports){
 // the following is used in a few places below
 var mac_user_save_files_en = ' <b>Mac users:</b> please see <a href="https://github.com/aroberge/reeborg/blob/master/dev_tools/known_problems.md" target="_blank" rel="noopener">Known problems</a>.';
@@ -17402,5 +17414,9 @@ ui_pl["You are not allowed to use <code>done</code> in this world!"] = "You are 
 ui_pl["Execution ended before the <em>Post</em> code was executed."] = "Execution ended before the <em>Post</em> code was executed.";
 
 ui_pl["Difficulty level"] = "Difficulty level";
+
+ui_pl["Expected result"] = "Expected result";
+ui_pl["Differences highlighted"] = "Differences highlighted";
+ui_pl["Actual result"] = "Actual result";
 
 },{}]},{},[16]);
