@@ -6834,6 +6834,24 @@ RUR.control.set_model = function(robot, model){
     RUR.record_frame("set_model", robot.__id);
  };
 
+/** @function set_model
+ * @memberof RUR
+ * @instance
+ * @summary This function, intended for world creators, allow to set the
+ * model for the default robot, overriding the user's default choice.
+ *
+ *  @param {string} model The name of the model
+ */
+
+RUR.set_model = function(model){
+    var robot;
+    robot = RUR.get_current_world().robots[0];
+    robot.model = model;
+    RUR.user_selected_model = undefined;  // overrides the user's choice
+    RUR.record_frame("RUR.set_model", robot.__id);
+ };
+
+
 RUR.control.set_trace_color = function(robot, color){
     robot._trace_color = color;
  };
@@ -15979,9 +15997,9 @@ ui_en[" is not a valid value!"] = " is not a valid value!";
 ui_en["Enter number of objects desired at that location."] = "Click on world to set number <code>{obj}</code>.";
 ui_en["Objects found here:"] = "Objects found here:";
 ui_en["Description"] = "Description";
-ui_en["A robot located here carries no objects."] = "A robot located at {x},{y} carries no objects.";
+ui_en["A robot located here carries no objects."] = "A robot located at (x, y) = ({x}, {y}) carries no objects.";
 ui_en["Goal to achieve:"] = "Goal to achieve:";
-ui_en["A robot located here carries:"] = "A robot located at {x},{y} carries:";
+ui_en["A robot located here carries:"] = "A robot located at (x, y) = ({x}, {y}) carries:";
 ui_en["random location"] = "random location";
 ui_en["Enter number of objects to give to robot."] = "Enter number of <code>{obj}</code> to give to robot.";
 ui_en["Special information about this location:"] = "Special information about this location:";
@@ -16370,8 +16388,8 @@ ui_fr[" is not a valid value!"] = " n'est pas une valeur valide!";
 ui_fr["Enter number of objects desired at that location."] = "Cliquez sur le monde pour fixer le nombre d'objet <code>{obj}</code> désiré à cet endroit.";
 ui_fr["Objects found here:"] = "Objets trouvés ici:";
 ui_fr["Description"] = "Description";
-ui_fr["A robot located here carries no objects."] = "A robot situé à {x},{y} ne transporte aucun objet.";
-ui_fr["A robot located here carries:"] = "Un robot situé à {x},{y} transporte:";
+ui_fr["A robot located here carries no objects."] = "A robot situé à (x, y) = ({x}, {y}) ne transporte aucun objet.";
+ui_fr["A robot located here carries:"] = "Un robot situé à (x, y) = ({x}, {y}) transporte:";
 ui_fr["random location"] = "une position choisie au hasard";
 ui_fr["Enter number of objects to give to robot."] = "Quel nombre de <code>{obj}</code> voulez-vous donner au robot?";
 ui_fr["Special information about this location:"] = "Information particulière au sujet de cet endroit:";
@@ -16770,9 +16788,9 @@ ui_ko[" is not a valid value!"] = " 유효하지 않은 값입니다!";
 ui_ko["Enter number of objects desired at that location."] = "<code>{obj}</code> 의 수를 설정하기 위해 월드를 클릭하세요.";
 ui_ko["Objects found here:"] = "객체를 여기서 찾음:";
 ui_ko["Description"] = "설명";
-ui_ko["A robot located here carries no objects."] = "로봇은 {x},{y}에 위치해 있고 싣고 있는 객체는 없습니다.";
+ui_ko["A robot located here carries no objects."] = "로봇은 (x, y) = ({x}, {y})에 위치해 있고 싣고 있는 객체는 없습니다.";
 ui_ko["Goal to achieve:"] = "목표 달성:";
-ui_ko["A robot located here carries:"] = "로봇은 {x},{y}에 위치해 있습니다. 싣고 있는 객체:";
+ui_ko["A robot located here carries:"] = "로봇은 (x, y) = ({x}, {y})에 위치해 있습니다. 싣고 있는 객체:";
 ui_ko["random location"] = "무작위 위치";
 ui_ko["Enter number of objects to give to robot."] = "로봇에게 주기 위해 <code>{obj}</code> 의 수를 입력하세요..";
 ui_ko["Special information about this location:"] = "이 위치에 대한 특별한 정보:";
@@ -17166,9 +17184,9 @@ ui_pl[" is not a valid value!"] = " to nie jest prawidłowy numer!";
 ui_pl["Enter number of objects desired at that location."] = "Naciśnij na świat by wybrać numer <code>{obj}</code>.";
 ui_pl["Objects found here:"] = "Obiekty znalezione tutaj:";
 ui_pl["Description"] = "Opisy";
-ui_pl["A robot located here carries no objects."] = "Robot położony {x},{y} nie trzyma żadnych obiektów.";
+ui_pl["A robot located here carries no objects."] = "Robot położony (x, y) = ({x}, {y}) nie trzyma żadnych obiektów.";
 ui_pl["Goal to achieve:"] = "Cele do osiągnięcia:";
-ui_pl["A robot located here carries:"] = "Robot położony {x},{y} trzyma:";
+ui_pl["A robot located here carries:"] = "Robot położony (x, y) = ({x}, {y}) trzyma:";
 ui_pl["random location"] = "losowe położenie";
 ui_pl["Enter number of objects to give to robot."] = "Wpisz ilość obiektów <code>{obj}</code> które dasz robotowi.";
 ui_pl["Special information about this location:"] = "Specjalne informacje o tej lokacji:";
