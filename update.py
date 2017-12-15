@@ -45,14 +45,14 @@ def update_dir(name):
     except FileExistsError:
         print("Error:", name, "already exists and could not be copied.")
 
-update_dir("offline/")
-update_dir("src/blockly/")
-update_dir("src/blockly_msg/")
+# update_dir("offline/")
+# update_dir("src/blockly/")
+# update_dir("src/blockly_msg/")
 update_dir("src/css/")
 update_dir("src/images/")
-update_dir("src/libraries/")
+# update_dir("src/libraries/")
 update_dir("src/python/")
-update_dir("src/sounds/")
+# update_dir("src/sounds/")
 update_dir("worlds/")
 
 os.system('git add *')
