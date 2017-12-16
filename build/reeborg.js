@@ -8849,6 +8849,8 @@ RUR.reset_pre_run_defaults = function () {
         // set to true.
     RUR.state.prevent_playback = false;
 
+    RUR.state.visible_grid = false; /* if true, will be shown above tiles */
+    RUR.public = {}; // reset
 
     RUR.state.do_not_draw_info = false; // see document titled
                     // "How to show just the path followed by Reeborg"
@@ -13415,13 +13417,10 @@ RUR.is_fatal_position = function (x, y, robot){
     obstacles = RUR.get_obstacles(x, y);
     if (obstacles) {
         for (obs of obstacles) {
-            // Here, and below, we call RUR._get_property instead of
-            // RUR.get_property since this uses the internal english names;
-            // RUR.get_property assumes an untranslated argument.
-            if (RUR._get_property(obs, "fatal")) {
-                if (protections.indexOf(RUR._get_property(obs, "fatal")) === -1) {
-                    if (RUR.THINGS[obs].message) {
-                        return RUR.THINGS[obs].message;
+            if (RUR.get_property(obs, "fatal")) {
+                if (protections.indexOf(RUR.get_property(obs, "fatal")) === -1) {
+                    if (RUR.THINGS[RUR.translate_to_english(obs)].message) {
+                        return RUR.THINGS[RUR.translate_to_english(obs)].message;
                     } else {
                         return "Fatal obstacle needs message defined";
                     }
@@ -14582,8 +14581,8 @@ RUR.show_all_things = function (property) {
             info += "Missing image</td><td>";
         }
         if (RUR.THINGS[name].goal !== undefined) {
-            info += "<img src = '" + RUR.THINGS[name].goal.url + "'><br>"
-                    + RUR.THINGS[name].goal.url;
+            info += "<img src = '" + RUR.THINGS[name].goal.url + "'><br>" +
+                    RUR.THINGS[name].goal.url;
         }
         info += "</td></tr>";
     }
@@ -14647,7 +14646,6 @@ RUR.has_property = function (name, property) {
  * write(RUR.get_property("water", "fatal"))  // Javascript
  */
 RUR.get_property = function (name, property) {
-    var property;
 
     name = RUR.translate_to_english(name);
 
@@ -14667,8 +14665,9 @@ RUR.get_property = function (name, property) {
 // we undo the translation to avoid having a warning for a missing
 // translation logged in the browser console.
 RUR._get_property = function (name, property) {
+    console.log("in _get_property, name = ", name);
     return RUR.get_property(RUR.translate(name), property);
-}
+};
 
 
 /*=============================
@@ -15442,8 +15441,6 @@ RUR.world_utils.import_world = function (json_string) {
     var body, editor_content, library_content, i, keys, more_keys, coord, index, obstacles;
 
     RUR.hide_end_dialogs();
-    RUR.state.visible_grid = false; /* if true, will be shown above tiles */
-    RUR.public = {}; // reset
 
     if (json_string === undefined || json_string === "undefined"){
         RUR.show_feedback("#Reeborg-shouts",
