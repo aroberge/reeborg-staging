@@ -14310,7 +14310,7 @@ RUR.add_final_position = function (name, x, y) {
  * with different `x, y` positions; doing so will result in a initial position
  * chosen randomly (among the choices recorded) each time a program is run.
  *
- * If `x, y` had previously been set as a goal final position
+ * If `x, y` had previously been set as an initial position
  * no change is being made and a message is logged in the browser's console.
  *
  * @param {integer} x  The position on the grid
@@ -14340,10 +14340,71 @@ RUR.add_initial_position = function (x, y) {
             return;
         }
     }
+    // in case we want to replace an existing initial position by adding
+    // a new one, and then calling RUR.remove_initial_position,
+    // we set the current initial position to the new one we just added.
+    // This has no visible effect if more than one initial position is possible.
+    robot._prev_x = robot.x = x;
+    robot._prev_y = robot.y = y;
 
     robot.possible_initial_positions.push([x, y]);
     RUR.record_frame("add_initial_position", {x:x, y:y});
 };
+
+
+ /** @function remove_initial_position
+ *
+ * @memberof RUR
+ * @instance
+ * @summary This function removes an initial (starting) position as a possibility
+ * for the default robot. It is possible to call this function multiple times,
+ * with different `x, y` positions. However, if there is only one remaining
+ * initial position, such calls will be ignored to ensure that there is
+ * always a robot present.
+ *
+ * If `x, y` is not an initial position
+ * no change is being made and a message is logged in the browser's console.
+ *
+ * @param {integer} x  The position on the grid
+ * @param {integer} y  The position on the grid
+ *
+ * @todo: put in argument verification code and note which error can be thrown
+ * @throws Will throw an error if the the world does not contain a robot
+ * @throws Will throw an error if the initial position is not valid [not implemented yet]
+ **/
+
+RUR.remove_initial_position = function (x, y) {
+    "use strict";
+    var robot, pos, new_positions, world=RUR.get_current_world();
+    if (world.robots === undefined || world.robots.length === 0) {
+        throw new RUR.ReeborgError("This world has no robot; cannot remove initial position.");
+    }  
+
+    robot = world.robots[0];
+    if (!robot.possible_initial_positions){
+        robot.possible_initial_positions = [[robot.x, robot.y]];
+        return;
+    }
+
+    if (robot.possible_initial_positions.length == 1) {
+        return;
+    }
+
+    new_positions = [];
+    for(var i=0; i<robot.possible_initial_positions.length; i++) {
+        pos = robot.possible_initial_positions[i];
+        if(pos[0]==x && pos[1]==y){
+            continue;
+        } else {
+            new_positions.push(pos);
+        }
+    }
+
+    robot.possible_initial_positions = new_positions;
+    RUR.record_frame("remove_initial_position", {x:x, y:y});
+};
+
+
 
 // TODO: try to set it in the middle of a program to have Reeborg being "dizzy".
  /** @function set_random_orientation
@@ -14665,7 +14726,6 @@ RUR.get_property = function (name, property) {
 // we undo the translation to avoid having a warning for a missing
 // translation logged in the browser console.
 RUR._get_property = function (name, property) {
-    console.log("in _get_property, name = ", name);
     return RUR.get_property(RUR.translate(name), property);
 };
 
@@ -15130,7 +15190,7 @@ RUR.world_get.world_info = function (show_info_at_location) {
                         no_object = false;
                         information += "<br><b>" + RUR.translate("A robot located here carries:").supplant({x:x, y:y}) + "</b>";
                     }
-                    information += "<br>" + RUR.translate(obj) + ":" + robot.objects[obj];
+                    information += "<br>" + RUR.translate(obj) + ":" + RUR.translate(robot.objects[obj].toString());
                 }
             }
             if (no_object){
@@ -15928,6 +15988,8 @@ ui_en["gravel"] = en_to_en["gravel"] = "gravel";
 ui_en["ice"] = en_to_en["ice"] = "ice";
 ui_en["fire"] = en_to_en["fire"] = "fire";
 
+ui_en["infinite"] = "infinite number";
+
 ui_en["fence_right"] = en_to_en["fence_right"] = "fence_right";
 ui_en["fence_left"] = en_to_en["fence_left"] = "fence_left";
 ui_en["fence_vertical"] = en_to_en["fence_vertical"] = "fence_vertical";
@@ -16311,6 +16373,8 @@ ui_fr["ice"] = "glace";
 fr_to_en["glace"] = "ice";
 ui_fr["fire"] = "feu";
 fr_to_en["feu"] = "fire";
+
+ui_fr["infinite"] = "nombre infini";
 
 ui_fr["fence_right"] = "clôture_droite";
 fr_to_en["clôture_droite"] = "fence_right";
@@ -16711,6 +16775,9 @@ ui_ko["bulb"] = "tulip bulb";
 ko_to_en["tulip bulb"] = "bulb";
 ui_ko["Tulip bulb: might grow into a nice tulip with some water from a bucket."] = "Tulip bulb: might grow into a nice tulip with some water from a bucket.";
 
+ui_ko["infinite"] = "infinite number";
+
+
 // more translations needed
 ui_ko["fence_right"] = "울타리 right";
 ko_to_en["울타리 right"] = "fence_right";
@@ -17105,6 +17172,8 @@ pl_to_en["trawa"] = "grass";
 pl_to_en["żwir"] = "gravel";
 pl_to_en["lód"] = "ice";
 pl_to_en["ogień"] = "fire";
+
+ui_pl["infinite"] = "infinite number";
 
 ui_pl["fence_right"] = "płotek_po_prawa";
 ui_pl["fence_left"] = "płotek_po_lewo";

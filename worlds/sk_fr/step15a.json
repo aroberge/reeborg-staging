@@ -1,6 +1,7 @@
 {
   "description": [
     "<h1>Incoming storm</h1>",
+    "<h3 class='warning'>Traduction à faire</h3>",
     "<p>Reeborg is standing by the door to the house, sees a storm coming,",
     " and decides to close all of the windows in the house. ",
     "First, Reeborg <code>put</code>s down a star where it is standing ",
@@ -15,7 +16,7 @@
     "to get to a window. Instead, Reeborg must check for an open window ",
     "as it walks around the inside of the house. </p>",
     "<p>The program you write to solve the problem above must also be ",
-    "able work on the second test world, which is Step 15a.</p>",
+    "able work on the second test world, which is Step 15b.</p>",
     "<h3>What you need to know</h3>",
     "",
     "<ul><li>The functions <code>move()</code>, ",
@@ -33,13 +34,22 @@
     "2,4": [
       "east"
     ],
+    "2,3": [
+      "east"
+    ],
     "3,2": [
       "north"
     ],
     "5,2": [
       "north"
     ],
+    "7,2": [
+      "north"
+    ],
     "6,2": [
+      "north"
+    ],
+    "9,2": [
       "north"
     ],
     "9,3": [
@@ -48,14 +58,29 @@
     "9,4": [
       "east"
     ],
+    "9,6": [
+      "east"
+    ],
     "9,7": [
       "east",
+      "north"
+    ],
+    "7,7": [
+      "north"
+    ],
+    "6,7": [
       "north"
     ],
     "4,7": [
       "north"
     ],
+    "3,7": [
+      "north"
+    ],
     "2,7": [
+      "east"
+    ],
+    "2,6": [
       "east"
     ]
   },
@@ -75,7 +100,7 @@
       "_trace_history": [],
       "_trace_style": "default",
       "_trace_color": "seagreen",
-      "__id": 13,
+      "__id": 2,
       "possible_initial_positions": [
         [
           3,
@@ -110,30 +135,6 @@
         "star": 1
       },
       "5,7": {
-        "star": 1
-      },
-      "3,3": {
-        "star": 1
-      },
-      "7,3": {
-        "star": 1
-      },
-      "9,3": {
-        "star": 1
-      },
-      "9,6": {
-        "star": 1
-      },
-      "7,7": {
-        "star": 1
-      },
-      "6,7": {
-        "star": 1
-      },
-      "3,7": {
-        "star": 1
-      },
-      "3,6": {
         "star": 1
       }
     }
@@ -269,9 +270,6 @@
       "gravel"
     ],
     "6,4": [
-      "gravel"
-    ],
-    "6,5": [
       "gravel"
     ],
     "6,6": [
@@ -426,6 +424,10 @@
     ],
     "12,8": [
       "mud"
+    ],
+    "6,5": [
+      "gravel"
     ]
-  }
+  },
+  "pre": "think(0)\nimport random\n\nworld_choice = random.randint(0,100)\noptions = {\"goal\": True}\n\ndef move_window(wall_dir, x, y, newX, newY):\n    #remove\n    RUR.add_wall(wall_dir, x, y)\n    RUR.remove_object(\"star\", x, y, options)\n    \n    #add\n    RUR.remove_wall(wall_dir, newX, newY)\n    RUR.add_object(\"star\", newX, newY, options)\n\nif world_choice > 66:\n    #generate different version...\n    move_window(\"south\", 4, 3, 5, 3)\n    move_window(\"south\", 8, 3, 7, 3)\n    move_window(\"east\", 9, 5, 9, 4)\n    move_window(\"north\", 8, 7, 7, 7)\n    move_window(\"north\", 5, 7, 4, 7)\nelif world_choice > 33:\n    #generate different version...\n    move_window(\"south\", 4, 3, 6, 3)\n    move_window(\"east\", 9, 5, 9, 6)\n    move_window(\"north\", 5, 7, 6, 7)\n    \nthink(500)    \n    \n"
 }
