@@ -9527,14 +9527,14 @@ RUR.make_default_menu = function(language) {
         case 'en':
         case 'fr-en':
         case 'ko-en':
-            RUR.load_world_file(RUR.BASE_URL + "/worlds/menus/default_menu_en.json");
+            RUR.load_world_file(RUR.BASE_URL + DEFAULT_MENU_EN); //"/worlds/menus/default_menu_en.json");
             break;
         case 'fr':
         case 'en-fr':
-            RUR.load_world_file(RUR.BASE_URL + "/worlds/menus/default_menu_fr.json");
+            RUR.load_world_file(RUR.BASE_URL + DEFAULT_MENU_FR); //"/worlds/menus/default_menu_fr.json");
             break;
         default: 
-            RUR.load_world_file(RUR.BASE_URL + "/worlds/menus/default_menu_en.json");
+            RUR.load_world_file(RUR.BASE_URL + DEFAULT_MENU_EN); //"/worlds/menus/default_menu_en.json");
     }
 
 };
@@ -10623,6 +10623,9 @@ RUR.update_progress = function(){
         return;   // this world does not have anything that needs to be solved.
     }
     world_name = RUR.state.world_name;
+    if (!world_name) {
+        return;
+    }
     if (world_name.substring(0,11) === "user_world:"){
         return;
     }
@@ -10859,6 +10862,11 @@ RUR.world_selector.append_world = function (arg) {
         shortname = RUR.add_checkmark(arg.shortname);
     } else {
         shortname = url;
+    }
+
+    if (!url) {
+        console.log("cannot append; url = ", url);
+        return;
     }
 
     // allow for special styling of any url containing the string "menu".
@@ -15974,6 +15982,7 @@ ui_en["triangle"] = en_to_en["triangle"] = "triangle";
 ui_en["tulip"] = en_to_en["tulip"] = "tulip";
 ui_en["bucket"] = en_to_en["bucket"] = "bucket";
 ui_en["bulb"] = en_to_en["bulb"] = "bulb";
+ui_en["bricks"] = en_to_en["bricks"] = "bricks";
 
 ui_en["mud"] = en_to_en["mud"] = "mud";
 ui_en["soil"] = en_to_en["soil"] = "soil";
@@ -16353,6 +16362,8 @@ fr_to_en["seau d'eau"] = "bucket";
 ui_fr["bulb"] = "bulbe de tulipe";
 fr_to_en["bulbe de tulipe"] = "bulb";
 ui_fr["Tulip bulb: might grow into a nice tulip with some water from a bucket."] = "Bulbe de tulipe : pourrait devenir une belle tulipe avec un seau d'eau.";
+ui_fr["bricks"] = "briques";
+fr_to_en["briques"] = "bricks";
 
 ui_fr["mud"] = "boue";
 fr_to_en["boue"] = "mud";
@@ -16750,6 +16761,9 @@ ko_to_en["튤립"] = "tulip";
 ui_ko["bucket"] = "물통"; // bucket of water; translated using google
 ko_to_en["물통"] = "bucket";
 
+ui_ko["bricks"] = "bricks";  // translation needed
+ko_to_en["bricks"] = "bricks";
+
 ui_ko["mud"] = "진흙";
 ko_to_en["진흙"] = "mud";
 ui_ko["soil"] = "흙"; // translated using google
@@ -17133,6 +17147,10 @@ ui_pl["triangle"] = "trójkąt";
 ui_pl["tulip"] = "tulipan";
 ui_pl["bucket"] = "wiadro";
 ui_pl["bulb"] = "żarówka";
+
+ui_pl["bricks"] = "bricks";  // translation needed
+pl_to_en["bricks"] = "bricks";
+
 
 pl_to_en["jabłko"] = "apple";
 pl_to_en["banan"] = "banana";
