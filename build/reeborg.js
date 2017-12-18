@@ -8760,7 +8760,6 @@ RUR.SHOW_EDITORS_CONTENTS = false;
 ==========================================================*/
 RUR.initial_defaults.human_language = 'en';
 RUR.initial_defaults.input_method = 'python';
-RUR.initial_defaults.initial_menu = RUR.BASE_URL + 'worlds/menus/default_menu_en.json';
 
 /*========================================================
    State changed through UI interaction or from initial URI
@@ -9523,18 +9522,22 @@ RUR.make_default_menu = function(language) {
         RUR.state.world_name = undefined;
         RUR.state.current_menu = undefined;   
     }
+
     switch (language) {
         case 'en':
         case 'fr-en':
         case 'ko-en':
-            RUR.load_world_file(RUR.BASE_URL + DEFAULT_MENU_EN); //"/worlds/menus/default_menu_en.json");
+            RUR.initial_defaults.initial_menu = RUR.BASE_URL + RUR.DEFAULT_MENU_EN;
+            RUR.load_world_file(RUR.BASE_URL + RUR.DEFAULT_MENU_EN);
             break;
         case 'fr':
         case 'en-fr':
-            RUR.load_world_file(RUR.BASE_URL + DEFAULT_MENU_FR); //"/worlds/menus/default_menu_fr.json");
+            RUR.load_world_file(RUR.BASE_URL + RUR.DEFAULT_MENU_FR);
+            RUR.initial_defaults.initial_menu = RUR.BASE_URL + RUR.DEFAULT_MENU_FR;
             break;
         default: 
-            RUR.load_world_file(RUR.BASE_URL + DEFAULT_MENU_EN); //"/worlds/menus/default_menu_en.json");
+            RUR.load_world_file(RUR.BASE_URL + RUR.DEFAULT_MENU_EN);
+            RUR.initial_defaults.initial_menu = RUR.BASE_URL + RUR.DEFAULT_MENU_EN;
     }
 
 };
@@ -10865,6 +10868,7 @@ RUR.world_selector.append_world = function (arg) {
     }
 
     if (!url) {
+        console.trace();
         console.log("cannot append; url = ", url);
         return;
     }
@@ -16303,7 +16307,7 @@ ui_en["Library Code is below."] = "Library Code is below.";
 ui_en["No solution can be saved when using REPL (Py)."] = "No solution can be saved when using REPL (Py).";
 ui_en["No solution can be loaded when using REPL (Py)."] = "No solution can be loaded when using REPL (Py).";
 
-ui_en["You are not allowed to use <code>done</code> in this world!"] = "You are not allowed to use <code>done</code> in this world!";
+ui_en["You are not allowed to use <code>done</code> in this world!"] = "You are not allowed to use <code>done()</code> in this world!";
 ui_en["Execution ended before the <em>Post</em> code was executed."] = "Execution ended before the <em>Post</em> code was executed.";
 
 ui_en["Difficulty level"] = "Difficulty level";
@@ -16703,7 +16707,7 @@ ui_fr["Library Code is below."] = "Le code de la biblio est ci-dessous.";
 ui_fr["No solution can be saved when using REPL (Py)."] = "Aucune solution ne peut être sauvegardée dans le mode REPL (Py).";
 ui_fr["No solution can be loaded when using REPL (Py)."] = "Aucune solution ne peut être chargée dans le mode REPL (Py).";
 
-ui_fr["You are not allowed to use <code>done</code> in this world!"] = "Il n'est pas permis d'utiliser <code>termine</code> dans ce monde !";
+ui_fr["You are not allowed to use <code>done</code> in this world!"] = "Il n'est pas permis d'utiliser <code>termine()</code> dans ce monde !";
 ui_fr["Execution ended before the <em>Post</em> code was executed."] = "L'exécution du programme a terminé avant que le code <em>Post</em> ne soit interprété.";
 
 ui_fr["Difficulty level"] = "Niveau de difficulté";
@@ -17106,7 +17110,7 @@ ui_ko["Library Code is below."] = "Library Code is below.";
 ui_ko["No solution can be saved when using REPL (Py)."] = "No solution can be saved when using REPL (Py).";
 ui_ko["No solution can be loaded when using REPL (Py)."] = "No solution can be loaded when using REPL (Py).";
 
-ui_ko["You are not allowed to use <code>done</code> in this world!"] = "You are not allowed to use <code>done</code> in this world!";
+ui_ko["You are not allowed to use <code>done</code> in this world!"] = "You are not allowed to use <code>done()</code> in this world!";
 ui_ko["Execution ended before the <em>Post</em> code was executed."] = "Execution ended before the <em>Post</em> code was executed.";
 
 ui_ko["Difficulty level"] = "Difficulty level";
@@ -17507,7 +17511,7 @@ ui_pl["Library Code is below."] = "Library Code is below.";
 ui_pl["No solution can be saved when using REPL (Py)."] = "No solution can be saved when using REPL (Py).";
 ui_pl["No solution can be loaded when using REPL (Py)."] = "No solution can be loaded when using REPL (Py).";
 
-ui_pl["You are not allowed to use <code>done</code> in this world!"] = "You are not allowed to use <code>done</code> in this world!";
+ui_pl["You are not allowed to use <code>done</code> in this world!"] = "You are not allowed to use <code>done()</code> in this world!";
 ui_pl["Execution ended before the <em>Post</em> code was executed."] = "Execution ended before the <em>Post</em> code was executed.";
 
 ui_pl["Difficulty level"] = "Difficulty level";
