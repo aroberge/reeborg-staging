@@ -76,7 +76,7 @@
     "the goal, with only two possible cases to consider",
     "in the meantime:</p>",
     "<pre class='python'>",
-    "while not ...:",
+    "while not at_goal():",
     "    if ...:",
     "        ...",
     "        ...",
