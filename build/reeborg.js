@@ -7123,7 +7123,7 @@ RUR.show_detailed_diff = function (expected, actual, options) {
     } else {
         expected_heading = "<h3>" + RUR.translate("Expected result") + "</h3>";
     }
-    expected_section = expected_heading + div_begin + expected + "</div>";
+    expected_section = expected_heading + div_begin + expected.replace(/\n/g, '<br>') + "</div>";
     
     if (options && options.differences_heading) {
         differences_heading = "<h3>" + options.differences_heading + "</h3>";
@@ -7138,7 +7138,7 @@ RUR.show_detailed_diff = function (expected, actual, options) {
         } else {
             actual_heading = "<h3>" + RUR.translate("Actual result") + "</h3>";
         }
-        actual_section = actual_heading + div_begin + actual + "</div>";
+        actual_section = actual_heading + div_begin + actual.replace(/\n/g, '<br>') + "</div>";
     }
 
     return expected_section + actual_section + differences_section;
@@ -13549,7 +13549,7 @@ RUR.add_object = function (name, x, y, options) {
                 options.number = options.min;
             }
         } else if (options.number === undefined) {
-            options.number = 1
+            options.number = 1;
         }
         keys = Object.keys(options);
         for (k of keys) {
@@ -13645,8 +13645,8 @@ RUR.remove_object = function (name, x, y, options) {
 RUR.get_objects = function (x, y, options) {
     "use strict";
     var args, obj, obj_en, k, keys;
-    args = {x:x, y:y, type:"objects"}
-    if (options!=undefined && options.goal != undefined) {
+    args = {x:x, y:y, type:"objects"};
+    if (options !== undefined && options.goal !== undefined) {
         args.goal = options.goal;
     }
     obj_en = RUR._get_artefacts(args);
@@ -13705,7 +13705,7 @@ RUR.is_object = function (name, x, y, options) {
   using it (e.g. in Vincent Maille's book) */
 RUR.add_object_at_position = function(name, x, y, number) { // Vincent Maille's book
     RUR.add_object(name, x, y, {number:number});
-}
+};
 
 },{"./../recorder/record_frame.js":32,"./../rur.js":38,"./../utils/key_exist.js":60,"./../utils/validator.js":66,"./artefact.js":68}],75:[function(require,module,exports){
 require("./../rur.js");
