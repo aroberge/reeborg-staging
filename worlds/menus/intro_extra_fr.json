@@ -6,7 +6,13 @@
     "var contents = [",
     "    [base + 'center1a.json', 'Centrer 1a'],",
     "    [base + 'center2a.json', 'Centrer 2a'],",
-    "    ['worlds/menus/select_collection_en.json', \"Other worlds\"]",
+    "    [base + 'chess0_5x1.json', 'Damier 5x1'],",
+    "    [base + 'chess0_1x5.json', 'Damier 1x5'],",
+    "    [base + 'chess0_3x4.json', 'Damier 3x4'],",
+    "    [base + 'chess0_4x3.json', 'Damier 4x3'],",
+    "    [base + 'chess1.json', 'Damier: le défi'],",
+    "    [base + 'chess2.json', 'Damier: le grand défi'],",
+    "    ['worlds/menus/select_collection_fr.json', \"Autres mondes\"]",
     "    ];",
     "MakeCustomMenu(contents);"
   ]
