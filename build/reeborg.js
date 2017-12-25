@@ -8704,13 +8704,14 @@ RUR.MAX_X_DEFAULT = 14; // These two values are used in the dialog used to resiz
 RUR.MAX_Y_DEFAULT = 12; // a world, hard-coded in the html dialog #dialog-set-dimensions.
 RUR.END_CYCLE = "end cycle"; // for animated images
 
-RUR.CHECKMARK = "    ✓🤖";
+RUR.CHECKMARK = " ✓🤖"; // do not add multiple spaces; they are irrelevant for
+// the display and prevent strip_checkmark from working correctly in all cases.
 
 // The following are editors (content) that can be part of a world.
 RUR.WORLD_EDITORS = ["description", "editor", "library", "pre", "post", "onload"];
 
 /*========================================================
-  World contants
+  World constants
 
   These can take different values based on world definition,
   but are otherwise constant within a given world.
@@ -9912,6 +9913,7 @@ RUR.listeners['human-language'] = function() {
 
 require("../rur.js");
 require("./../translator.js");
+require("./user_progress.js");
 var remove_fileInput_listener = require("../listeners/onclick.js").remove_fileInput_listener;
 
 // Do not change the value of library_separator()as it could break
@@ -9944,6 +9946,9 @@ function saveSolution() {
         parts = filename.split("/");
         filename = parts[parts.length-1];
     }
+
+    filename = RUR.strip_checkmark(filename); // remove marks for completed task.
+
 
     switch(RUR.state.input_method) {
         case "python":
@@ -10038,7 +10043,7 @@ $(document).ready(function() {
 
 
 
-},{"../listeners/onclick.js":20,"../rur.js":38,"./../translator.js":40}],48:[function(require,module,exports){
+},{"../listeners/onclick.js":20,"../rur.js":38,"./../translator.js":40,"./user_progress.js":56}],48:[function(require,module,exports){
 require("./../rur.js");
 require("./../playback/play.js");
 var record_id = require("./../../lang/msg.js").record_id;
