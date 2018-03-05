@@ -7882,34 +7882,19 @@ RUR.rec.conclude = function () {
 
 RUR.rec.handle_error = function (frame) {
     "use strict";
-    var post_code_not_run, world;
+    var world;
 
     world = RUR.get_current_world();
-    if (world.post !== undefined) {
-        if (!RUR.state.post_code_executed) {
-            post_code_not_run = true;
-        }
-    }
 
     if (frame.error.reeborg_shouts === RUR.translate("Done!")){
         if (frame.world_map.goal !== undefined){
             return RUR.rec.conclude();
-        } else {
-            if (post_code_not_run) {
-                if (RUR.state.sound_on) {
-                    RUR._play_sound("#error-sound");
-                }
-                message = "<p class='center'>" +
-                    RUR.translate("You are not allowed to use <code>done</code> in this world!") +
-                    "</p>";    
-                RUR.show_feedback("#Reeborg-shouts", message);
-            } else {
-                if (RUR.state.sound_on) {
-                    RUR._play_sound("#success-sound");
-                }
-                RUR.show_feedback("#Reeborg-concludes",
-                    RUR.translate("<p class='center'>Instruction <code>done()</code> executed.</p>"));
+        } else{
+            if (RUR.state.sound_on) {
+                RUR._play_sound("#success-sound");
             }
+            RUR.show_feedback("#Reeborg-concludes",
+                RUR.translate("<p class='center'>Instruction <code>done()</code> executed.</p>"));
         }
     } else if (frame.error.name == "ReeborgOK") {
         RUR.show_feedback("#Reeborg-concludes",
@@ -7951,22 +7936,6 @@ RUR.rec.check_current_world_status = function() {
 
 RUR.rec.check_goal = function (frame) {
     var g, world, goal_status = {"success": true}, result;
-
-    if (RUR.get_current_world().post !== undefined) {
-        if (!RUR.state.post_code_executed) {
-            goal_status.success = false;
-            if (RUR.state.done_executed) {
-                goal_status.message = "<p class='center'>" +
-                    RUR.translate("You are not allowed to use <code>done</code> in this world!") +
-                    "</p>";                 
-            } else {
-                goal_status.message = "<p class='center'>" +
-                    RUR.translate("Execution ended before the <em>Post</em> code was executed.") +
-                    "</p>";                 
-            }
-        return goal_status;
-        }
-    }
 
     g = frame.world_map.goal;
     if (g === undefined) {   // This is only needed for some functional tests
@@ -8350,8 +8319,15 @@ RUR.runner.eval_javascript = function (src) {
     pre_code = pre_code_editor.getValue();
     post_code = post_code_editor.getValue();
     RUR.reset_definitions();
-    src = pre_code + "\n" + src + "\nRUR.state.post_code_executed=true\n" + post_code;
-    eval(src); // jshint ignore:line
+    src = pre_code + "\n" + src + "\n" + post_code;
+    try {
+        eval(src); // jshint ignore:line
+    } catch (e) {
+        if (RUR.state.done_executed){
+            eval(post_code); // jshint ignore:line
+        }
+        throw e;// throw original message from Done if nothing else is raised
+    } 
 };
 
 
@@ -8360,7 +8336,7 @@ RUR.runner.eval_python = function (src) {
     var pre_code, post_code;
     RUR.reset_definitions();
     pre_code = pre_code_editor.getValue();
-    post_code = "\nRUR.state.post_code_executed=True\n" + post_code_editor.getValue();
+    post_code = "\n" + post_code_editor.getValue();
     translate_python(src, RUR.state.highlight, RUR.state.watch_vars, pre_code, post_code);
 };
 
@@ -8889,9 +8865,9 @@ RUR.reset_pre_run_defaults = function () {
 
     RUR.current_maze = undefined; // special namespace when mazes are created
 
-    RUR.state.done_executed = false; // Used to monitor if done is used 
-                                     // preventing the evaluation of Post code.
-    RUR.state.post_code_executed = false;
+    RUR.state.done_executed = 0; // = false in both Python and Javascript
+                                // Used to monitor if done is used 
+                                // preventing the evaluation of Post code.
 
     RUR.print_cache = '';  // capturing the standard output from a user's program.
 
@@ -11492,6 +11468,7 @@ function walk(x, y, vis){
 
 require("./../rur.js");
 require("./../drawing/visible_world.js");
+require("./../ui/user_progress.js");
 
 /** @function print_path
  * @memberof RUR
@@ -11629,6 +11606,7 @@ RUR.check_path = function (desired_path, options) {
         if (options) {
             if (options.success) {
                 RUR.success_custom_message = options.success;
+                RUR.update_progress();
                 throw new RUR.ReeborgOK(options.success);
             }
         }
@@ -11680,7 +11658,7 @@ RUR.show_path = function (path, color) {
     RUR.record_frame("show_path");
 };
 
-},{"./../drawing/visible_world.js":10,"./../rur.js":38}],63:[function(require,module,exports){
+},{"./../drawing/visible_world.js":10,"./../rur.js":38,"./../ui/user_progress.js":56}],63:[function(require,module,exports){
 function randint(max) {
     // returns integer between 0 and max-1
     return Math.max(0, Math.floor(Math.random() * max));
