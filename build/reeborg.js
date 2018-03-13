@@ -8775,7 +8775,9 @@ RUR.state.editing_world = false;
 
 RUR.state.extra_code_visible = false;
 
-RUR.state.user_progress = {}; // keep track of user progress (worlds solved).
+RUR.state.user_progress = {}; // names of worlds solved
+RUR.state.user_solutions = {}; // programs for worlds solved
+
 
 // This will keep track of the current font size if changed by the user.
 RUR.state.editors_font_size = undefined;
@@ -9902,17 +9904,6 @@ require("./../translator.js");
 require("./user_progress.js");
 var remove_fileInput_listener = require("../listeners/onclick.js").remove_fileInput_listener;
 
-// Do not change the value of library_separator()as it could break
-// some programs saved previously. Note that it will be different for each
-// human language - provided that a translation exists.
-
-function library_separator() {
-    return "\n" +
-    "################################################################\n# " +
-    RUR.translate("WARNING: Do not change this comment.") +    
-    "\n# " + RUR.translate("Library Code is below.") +  
-    "\n################################################################\n";
-}
 
 function saveSolution() {
     /* Saves the solution (code in the editor and, if using Python,
@@ -9940,7 +9931,7 @@ function saveSolution() {
         case "python":
             filetype = "text/python;charset=utf-8";
             extension = ".py";
-            content = editor.getValue() + library_separator()+ library.getValue();
+            content = editor.getValue() + RUR.library_separator()+ library.getValue();
             break;
         case "blockly-py":
         case "blockly-js":
@@ -9992,7 +9983,7 @@ function loadSolution () {
                     return;                  
             }   
             content = reader.result;
-            parts = content.split(library_separator());
+            parts = content.split(RUR.library_separator());
             if (parts.length == 2) {
                 library.setValue(parts[1]);
             }
@@ -10218,6 +10209,7 @@ RUR.listeners['programming-mode'] = function () {
     }
     RUR.kbd.set_programming_language(RUR.state.programming_language);
     RUR.permalink.update_URI();
+    RUR.update_marks_in_world_selector();
 };
 
 
@@ -10579,7 +10571,10 @@ require("./../translator.js");
 var record_id = require("./../../lang/msg.js").record_id;
 var remove_fileInput_listener = require("../listeners/onclick.js").remove_fileInput_listener;
 
-function update_world_selector (name, remove) {
+
+/* This function updates a single name in the world selector,
+   to either add or remove a checkmark */
+function update_name_in_world_selector (name, remove) {
     var options = $("#select-world")[0].options;
     for (var i=0; i<options.length; i++) {
         if (remove) {
@@ -10594,6 +10589,36 @@ function update_world_selector (name, remove) {
     }
 }
 
+/* This function is intended to be called when a programming language is
+   changed, so as to update the "checkmarks" in the world selector.
+ */
+
+RUR.update_marks_in_world_selector = function() {
+    var prog_method, menu, options, name;
+
+    options = $("#select-world")[0].options;
+    for (var i=0; i<options.length; i++) {
+        options[i].innerHTML = RUR.strip_checkmark(options[i].innerHTML);
+    }
+
+    prog_method = _get_programming_method();
+    if (RUR.state.user_progress[prog_method] == undefined) {
+        return;
+    }
+    menu = RUR.state.user_progress[prog_method][RUR.state.current_menu];
+    if (menu == undefined) {
+        return;
+    }
+
+    for (var i=0; i<options.length; i++) {
+        name = options[i].innerHTML;
+        if (menu.includes(name)) {
+            options[i].innerHTML = name + RUR.CHECKMARK;
+        }
+    }
+};
+
+
 RUR.strip_checkmark = function (name) {
     return name.replace(RUR.CHECKMARK, '');
 };
@@ -10601,10 +10626,18 @@ RUR.strip_checkmark = function (name) {
 /* Add a checkmark only if the world has been solved.
 */
 RUR.add_checkmark = function (name) {
-    var menu = RUR.state.user_progress[RUR.state.current_menu];
+    var prog_method, menu;
+
     if (name.substring(0,11) === "user_world:"){
         return name;
     }
+
+    prog_method = _get_programming_method();
+    if (RUR.state.user_progress[prog_method] === undefined) {
+        return name;
+    }
+
+    menu = RUR.state.user_progress[prog_method][RUR.state.current_menu];
     if (menu !== undefined && menu.includes(name)) {
         return name += RUR.CHECKMARK;
     }
@@ -10612,7 +10645,13 @@ RUR.add_checkmark = function (name) {
 };
 
 RUR.update_progress = function(){
-    var world_name, world = RUR.get_current_world();
+    var world_name, prog_method, world = RUR.get_current_world();
+    if (!RUR.state.current_menu) {
+        return;
+    }
+    if (RUR.state.input_method == "py-repl") {
+        return;
+    }
     if (world.goal === undefined && world.post === undefined) {
         return;   // this world does not have anything that needs to be solved.
     }
@@ -10623,38 +10662,121 @@ RUR.update_progress = function(){
     if (world_name.substring(0,11) === "user_world:"){
         return;
     }
-
-    RUR.utils.ensure_key_for_array_exists(RUR.state.user_progress, RUR.state.current_menu);
-    if (!RUR.state.user_progress[RUR.state.current_menu].includes(world_name)) {
-        RUR.state.user_progress[RUR.state.current_menu].push(world_name);
+    prog_method = _get_programming_method();
+    if (prog_method == "invalid") {
+        return;
     }
-    update_world_selector(world_name);
+    RUR.utils.ensure_key_for_obj_exists(RUR.state.user_progress, prog_method);
+    RUR.utils.ensure_key_for_array_exists(RUR.state.user_progress[prog_method], RUR.state.current_menu);
+    if (!RUR.state.user_progress[prog_method][RUR.state.current_menu].includes(world_name)) {
+        RUR.state.user_progress[prog_method][RUR.state.current_menu].push(world_name);
+    }
+    update_name_in_world_selector(world_name);
     localStorage.setItem("user-progress", JSON.stringify(RUR.state.user_progress));
+    save_user_solution();
 };
 
-function retrieve_progress () {
-    var progress = localStorage.getItem("user-progress");
-    if (progress) {
-        try {
-            RUR.state.user_progress = JSON.parse(progress);
-        } catch (e) {
-            RUR.state.user_progress = {};
-        }
+function _get_programming_method() {
+    var programming_method, input_method;
+    input_method = localStorage.getItem("input_method");
+    if (input_method == "blockly-py" || input_method == "blockly-js") {
+        programming_method = "blockly";
+    } else if (input_method == "javascript") {
+        programming_method = "javascript";
+    } else if (input_method == "python") {
+        programming_method = "python";
+    } else {
+        programming_method = "invalid"; // value not used for saving progress
     }
+    return programming_method;
 }
 
-retrieve_progress();
+/* The first implementation of user progress kept track of world collections (menu)
+   and world names, regardless of the programming method used 
+   (blockly, Python code, Javascript code).
+   The new version, which is introduced just a few months after the intial
+   implementation, allows users to try to solve a given world using different
+   methods, and keep track of progress using each. 
+   When we retrieve the progress status from local storage, we might need
+   to convert from the old implementation to the new one.
+   We guess the conversion based on the current input method which should be
+   the last one used.
+
+ */
+function _retrieve_progress () {
+    var prog_method, progress, user_progress, valid_methods, i, method;
+    valid_methods = ["python", "javascript", "blockly"];
+    progress = localStorage.getItem("user-progress");
+    prog_method = _get_programming_method();
+
+    user_progress = {}
+    if (progress) {
+        try {
+            user_progress = JSON.parse(progress);
+            if (user_progress == null || typeof user_progress == "string") {
+                user_progress = {};
+            }
+        } catch (e) {}
+    }
+
+    for(i=0; i<valid_methods.length; i++){
+        if (user_progress[valid_methods[i]] !== undefined){
+            RUR.state.user_progress = user_progress;  // no conversion needed            
+            return;
+        }
+    }
+    RUR.state.user_progress[prog_method] = user_progress;
+    localStorage.setItem("user-progress", JSON.stringify(RUR.state.user_progress));    
+}
+_retrieve_progress();
+
+
+function _retrieve_user_solutions () {
+    solutions = localStorage.getItem("user-solutions");
+    if (solutions) {
+        try {
+            solutions = JSON.parse(solutions);
+        } catch (e) {
+            solutions = {};
+        }
+        
+    } else {
+        solutions = {};
+    }
+    RUR.state.user_solutions = solutions;
+}
+_retrieve_user_solutions();
 
 
 function save_progress() {
-    var blob, filename, filetype, progress;
+    var blob, combined;
 
-    progress = JSON.stringify(RUR.state.user_progress);
-    filetype = "text/javascript;charset=utf-8";
-    filename = "progress.json";
+    combined = JSON.stringify({'progress': RUR.state.user_progress,
+                'solutions': RUR.state.user_solutions});
 
-    blob = new Blob([progress], {type: filetype});
-    saveAs(blob, filename, true);
+    blob = new Blob([combined], {type: "text/javascript;charset=utf-8"});
+    saveAs(blob, "progress.json", true);
+}
+
+// From https://stackoverflow.com/a/8764974/558799
+function mergeRecursive(obj1, obj2) {
+  if (Array.isArray(obj2)) { return obj1.concat(obj2); }
+  for (var p in obj2) {
+    try {
+      // Property in destination object set; update its value.
+      if ( obj2[p].constructor==Object ) {
+        obj1[p] = mergeRecursive(obj1[p], obj2[p]);
+      } else if (Array.isArray(obj2[p])) {
+        obj1[p] = obj1[p].concat(obj2[p]);
+      } else {
+        obj1[p] = obj2[p];
+      }
+    } catch(e) {
+      // Property in destination object not set; create it and set its value.
+      obj1[p] = obj2[p];
+    }
+  }
+  return obj1;
 }
 
 
@@ -10668,16 +10790,24 @@ function import_progress () {
         var file, reader;
         reader = new FileReader();
         reader.onload = function(e) {
-            var content = reader.result, progress;
+            var content = reader.result, progress, combined, solutions;
             try {
-                progress = JSON.parse(content);
+                combined = JSON.parse(content);
+                progress = combined['progress'];
+                solutions = combined['solutions'];
             } catch (e2) {
                 alert(RUR.translate("Cannot parse progress file."));
                 return;
             }
-            Object.assign(RUR.state.user_progress, progress);
-            localStorage.setItem("user-progress", JSON.stringify(RUR.state.user_progress));
-            refresh_world_selector();
+            try {
+                RUR.state.user_progress = mergeRecursive(RUR.state.user_progress, progress);
+                localStorage.setItem("user-progress", JSON.stringify(RUR.state.user_progress));
+                RUR.state.user_solutions = mergeRecursive(RUR.state.user_solutions, solutions);
+                localStorage.setItem("user-solutions", JSON.stringify(RUR.state.user_solutions));
+                refresh_world_selector();
+            } catch (e) {
+                alert(RUR.translate("Cannot merge progress."));
+            }
             fileInput.value = '';
         };
 
@@ -10688,12 +10818,17 @@ function import_progress () {
 
 function refresh_world_selector() {
     "use strict";
-    var badges, menu, world_name, options = $("#select-world")[0].options;
+    var badges, menu, prog_method, world_name, options = $("#select-world")[0].options;
+    prog_method = _get_programming_method();
+    if (RUR.state.user_progress[prog_method] === undefined) {
+        return;
+    }
     menu = RUR.state.current_menu;
-    badges = RUR.state.user_progress[menu];
+    badges = RUR.state.user_progress[prog_method][menu];
     if (badges === undefined) {
         return;
     }
+
     for (var i=0; i<options.length; i++) {
         world_name = RUR.strip_checkmark(options[i].innerHTML);
         if (badges.includes(world_name)) {
@@ -10707,6 +10842,7 @@ function refresh_world_selector() {
  * @instance
  * @summary Removes the tasks from the list of completed tasks. If the task
  * cannot be found, the function will fail silently.
+ * Useful for testing interactively.
  *
  * @param {string} name The name of task as it appears in the world selector, 
  * like `Home 1`.
@@ -10715,7 +10851,10 @@ function refresh_world_selector() {
 
 RUR.unmark_task = function (name) {
     var tasks, remove=true;
-    tasks = RUR.state.user_progress[RUR.state.current_menu];
+    if (RUR.state.user_progress[prog_method] === undefined) {
+        return;
+    }
+    tasks = RUR.state.user_progress[prog_method][RUR.state.current_menu];
     if (tasks === undefined) {
         return;
     }
@@ -10723,14 +10862,15 @@ RUR.unmark_task = function (name) {
         return;
     } 
     tasks.splice(tasks.indexOf(name), 1);
-    RUR.state.user_progress[RUR.state.current_menu] = tasks;
-    update_world_selector(name, remove);
+    RUR.state.user_progress[prog_method][RUR.state.current_menu] = tasks;
+    update_name_in_world_selector(name, remove);
     localStorage.setItem("user-progress", JSON.stringify(RUR.state.user_progress));
 };
 
 
 record_id('save-progress-btn', "SAVE PROGRESS");
 record_id('import-progress-btn', "IMPORT PROGRESS");
+record_id('retrieve-solution-btn', "RETRIEVE SOLUTION")
 $(document).ready(function() {
     $("#save-progress-btn").on("click", function (evt) {
         save_progress();
@@ -10741,9 +10881,95 @@ $(document).ready(function() {
             $("#more-menus").dialog("close");
         } catch (e) {}
     });
+
+    $("#retrieve-solution-btn").on("click", function (evt) {
+        retrieve_user_solution();
+    });
+
 });
 
 
+// Do not change the value of library_separator()as it could break
+// some programs saved previously. Note that it will be different for each
+// human language - provided that a translation exists.
+
+RUR.library_separator = function () {  // also used in keyboard_shortcuts.js
+    return "\n" +
+    "################################################################\n# " +
+    RUR.translate("WARNING: Do not change this comment.") +    
+    "\n# " + RUR.translate("Library Code is below.") +  
+    "\n################################################################\n";
+}
+
+// save solution for a given world
+function save_user_solution () {
+    var prog_method;
+    prog_method = _get_programming_method();
+    switch(prog_method) {
+        case "python":
+            content = editor.getValue() + RUR.library_separator()+ library.getValue();
+            break;
+        case "blockly":
+            content = RUR.blockly.getValue();
+            break;                 
+        case "javascript":
+            content = editor.getValue();
+            break;      
+        default:
+            return;  
+    }
+    RUR.utils.ensure_key_for_obj_exists(RUR.state.user_solutions, prog_method);
+    RUR.utils.ensure_key_for_obj_exists(RUR.state.user_solutions[prog_method], RUR.state.current_menu);
+    try {
+        RUR.utils.ensure_key_for_obj_exists(
+            RUR.state.user_solutions[prog_method][RUR.state.current_menu], 
+            RUR.state.world_name);
+        RUR.state.user_solutions[prog_method][RUR.state.current_menu][RUR.state.world_name] = content;
+        localStorage.setItem("user-solutions", JSON.stringify(RUR.state.user_solutions));
+    } catch (e) {
+        console.log("problem in save_user_solution", e);
+        console.log("   world_name = ", RUR.state.world_name);
+        console.log("   current_menu = ", RUR.state.current_menu);
+    }
+
+}
+
+// retrieves user solution if it is found
+retrieve_user_solution = function () {
+    "use strict";
+    var prog_method, parts, solution=undefined;
+    prog_method = _get_programming_method();
+
+    if (RUR.state.user_solutions[prog_method] &&
+        RUR.state.user_solutions[prog_method][RUR.state.current_menu]
+        ) {
+        solution = RUR.state.user_solutions[prog_method][RUR.state.current_menu][RUR.state.world_name];
+    }
+
+    if (!solution) {
+        alert(RUR.translate("No solution found for this world."));
+        return;
+    }
+
+    switch(prog_method) {
+        case "python":
+            parts = solution.split(RUR.library_separator());
+            if (parts.length == 2) {
+                library.setValue(parts[1]);
+            }
+            editor.setValue(parts[0]);
+            break;
+        case "blockly":
+            RUR.blockly.setValue(solution);
+            break;                 
+        case "javascript":
+            editor.setValue(solution);
+            break;      
+        default:
+            console.log("default should never be called in RUR.retrieve_user_solution");
+            return;  
+    }
+}
 
 },{"../listeners/onclick.js":20,"../rur.js":38,"../utils/key_exist.js":60,"./../../lang/msg.js":85,"./../translator.js":40}],57:[function(require,module,exports){
 /*  Purpose of this file: abstract handling of menus so that all jQuery
@@ -15903,6 +16129,7 @@ record_id("world-title", "WORLD CREATION TITLE");
 record_id("program-in-editor", "PROGRAM IN EDITOR");
 record_id("progress-section", "PROGRESS SECTION TITLE");
 record_id("progress-explain", "PROGRESS EXPLAIN");
+record_id("retrieve-solution-explain", "RETRIEVE SOLUTION EXPLAIN");
 record_id("program-in-blockly-workspace", "PROGRAM IN BLOCKLY WORKSPACE");
 record_id("contact", "CONTACT");
 record_id("issues", "ISSUES");
@@ -16162,6 +16389,8 @@ ui_en["PROGRESS EXPLAIN"] = "Tasks solved are marked with " + RUR.CHECKMARK +
     "recorded in the current browser. You can import this file in a different browser so that your progress can be updated.";
 ui_en["SAVE PROGRESS"] = "Save";
 ui_en["IMPORT PROGRESS"] = "Import";
+ui_en["RETRIEVE SOLUTION"] = "Retrieve solution";
+ui_en["RETRIEVE SOLUTION EXPLAIN"] = "If a solution (blocks, or code and possibly code in library) for this world has been saved in the browser for the current programming mode, it will be retrieved and replace the current content.";
 
 ui_en["ADD CONTENT TO WORLD"] = "Add content to world from selected items below.";
 ui_en["ADD BLOCKLY TEXT"] = "Code blocks";
@@ -16308,6 +16537,10 @@ ui_en["Difficulty level"] = "Difficulty level";
 ui_en["Expected result"] = "Expected result";
 ui_en["Differences highlighted"] = "Differences highlighted";
 ui_en["Actual result"] = "Actual result";
+
+ui_en["Cannot parse progress file."] = "Cannot parse progress file.";
+ui_en["Cannot merge progress."] = "Cannot merge progress.";
+ui_en["No solution found for this world."] = "No solution found for this world.";
 
 },{}],87:[function(require,module,exports){
 // the following is used in a few places below
@@ -16561,6 +16794,8 @@ ui_fr["PROGRESS EXPLAIN"] = "Les tâches résolues sont indiqués par " + RUR.CH
     "vous pouvez importer ce fichier dans un autre navigateur pour mettre vos tâches à jour dans ce dernier.";
 ui_fr["SAVE PROGRESS"] = "Sauvegarder";
 ui_fr["IMPORT PROGRESS"] = "Importer";
+ui_fr["RETRIEVE SOLUTION"] = "Récupérer la solution";
+ui_fr["RETRIEVE SOLUTION EXPLAIN"] = "Si une solution (blocs, ou code et possiblement code dans la biblio) pour ce monde et pour le mode de programmation courant a été sauvegardée dans le navigateur, elle sera récupérée et remplacera le programme présent.";
 
 ui_fr["ADD CONTENT TO WORLD"] = "Ajouter au monde le contenu des items indiqués ci-dessous.";
 ui_fr["ADD BLOCKLY TEXT"] = "Blocs de code";
@@ -16708,6 +16943,10 @@ ui_fr["Difficulty level"] = "Niveau de difficulté";
 ui_fr["Expected result"] = "Résultat attendu";
 ui_fr["Differences highlighted"] = "Différences observées";
 ui_fr["Actual result"] = "Résultat observé";
+
+ui_fr["Cannot parse progress file."] = "Impossible d'extraire les données du fichier.";
+ui_fr["Cannot merge progress."] = "Impossible d'incorporer les données.";
+ui_fr["No solution found for this world."] = "Pas de solution trouvée pour ce monde.";
 
 },{}],88:[function(require,module,exports){
 // the following is used in a few places below
@@ -16964,6 +17203,8 @@ ui_ko["PROGRESS EXPLAIN"] = "Tasks solved are marked with " + RUR.CHECKMARK +
     "recorded in the current browser. You can import this file in a different browser so that your progress can be updated.";
 ui_ko["SAVE PROGRESS"] = "Save";
 ui_ko["IMPORT PROGRESS"] = "Import";
+ui_ko["RETRIEVE SOLUTION"] = "Retrieve solution";
+ui_ko["RETRIEVE SOLUTION EXPLAIN"] = "If a solution (blocks, or code and possibly code in library) for this world has been saved in the browser for the current programming mode, it will be retrieved and replace the current content.";
 
 ui_ko["ADD CONTENT TO WORLD"] = "Add content to world from selected items below.";
 ui_ko["ADD BLOCKLY TEXT"] = "Code blocks";
@@ -17112,6 +17353,9 @@ ui_ko["Expected result"] = "Expected result";
 ui_ko["Differences highlighted"] = "Differences highlighted";
 ui_ko["Actual result"] = "Actual result";
 
+ui_ko["Cannot parse progress file."] = "Cannot parse progress file.";
+ui_ko["Cannot merge progress."] = "Cannot merge progress.";
+ui_ko["No solution found for this world."] = "No solution found for this world.";
 },{}],89:[function(require,module,exports){
 // the following is used in a few places below
 var mac_user_save_files_en = ' <b>Mac users:</b> please see <a href="https://github.com/aroberge/reeborg/blob/master/dev_tools/known_problems.md" target="_blank" rel="noopener">Known problems</a>.';
@@ -17365,6 +17609,8 @@ ui_pl["PROGRESS EXPLAIN"] = "Tasks solved are marked with " + RUR.CHECKMARK +
     "recorded in the current browser. You can import this file in a different browser so that your progress can be updated.";
 ui_pl["SAVE PROGRESS"] = "Save";
 ui_pl["IMPORT PROGRESS"] = "Import";
+ui_pl["RETRIEVE SOLUTION"] = "Retrieve solution";
+ui_pl["RETRIEVE SOLUTION EXPLAIN"] = "If a solution (blocks, or code and possibly code in library) for this world has been saved in the browser for the current programming mode, it will be retrieved and replace the current content.";
 
 
 ui_pl["ADD CONTENT TO WORLD"] = "Dodaj zawartość do świata z wybranych przedmiotów poniżej.";
@@ -17513,4 +17759,7 @@ ui_pl["Expected result"] = "Expected result";
 ui_pl["Differences highlighted"] = "Differences highlighted";
 ui_pl["Actual result"] = "Actual result";
 
+ui_pl["Cannot parse progress file."] = "Cannot parse progress file.";
+ui_pl["Cannot merge progress."] = "Cannot merge progress.";
+ui_pl["No solution found for this world."] = "No solution found for this world.";
 },{}]},{},[16]);
