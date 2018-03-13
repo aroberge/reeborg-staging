@@ -9,8 +9,11 @@ reeborg_age = getmtime("../reeborg/reeborg.html")
 build_age = getmtime("../reeborg/build/reeborg.js")
 reeborg_offline_age = getmtime("../reeborg/reeborg_offline.html")
 
-if (reeborg_age > reeborg_offline_age) or (build_age - reeborg_offline_age > 10):
+if (reeborg_age > reeborg_offline_age) or (build_age - reeborg_offline_age > 60):
     print("Offline version too old; need to run make in main repo.")
+    print("reeborg_age:", reeborg_age)
+    print("reeborg_offline_age", reeborg_offline_age, reeborg_offline_age-reeborg_age)
+    print("build_age", build_age, build_age-reeborg_offline_age)
     exit()
 
 #===========================

@@ -3572,6 +3572,7 @@ function start_session () {
     }
     RUR.world_selector.set_url(RUR.state.world_url);
     RUR.permalink.update_URI();
+    $("#thought").hide();
 }
 
 
@@ -7759,6 +7760,8 @@ RUR.rec.display_frame = function () {
     "use strict";
     var frame, goal_status;
 
+    $("#thought").hide();
+
     if (RUR.current_frame_no >= RUR.nb_frames) {
         RUR.update_frame_nb_info();
         if (RUR.state.error_recorded) {
@@ -8028,6 +8031,7 @@ require("./../drawing/visible_robot.js"); // for RUR.reset_default_robot_images
 RUR.reset_world = function() {
     var world;
     RUR.reset_pre_run_defaults();
+    $("#thought").hide(); // just in case
     RUR.success_custom_message = undefined;
     RUR.failure_custom_message = undefined;
 
@@ -8222,6 +8226,7 @@ RUR.runner.run = function (playback) {
         }
         fatal_error_found = RUR.runner.eval(editor.getValue()); // jshint ignore:line
     }
+    $("#thought").hide();
     if (!fatal_error_found) {
         // save program so that it a new browser session can use it as
         // starting point.
@@ -10444,6 +10449,15 @@ var record_id = require("./../../lang/msg.js").record_id;
 record_id("run");
 
 RUR.listeners.run = function () {
+    if (RUR.state.code_evaluated) {
+        run();
+    } else {
+        $("#thought").show();
+        setTimeout(run, 15); //  enough time for thought bubble to appear
+    }
+};
+
+function run() {
     $("#stop").removeAttr("disabled");
     $("#pause").removeAttr("disabled");
     $("#run").attr("disabled", "true");
@@ -10463,7 +10477,8 @@ RUR.listeners.run = function () {
 
     clearTimeout(RUR._TIMER);
     RUR.runner.run(RUR.play);
-};
+    $("#thought").hide();
+}
 
 },{"./../../lang/msg.js":85,"./../playback/play.js":22,"./../runner/runner.js":36,"./../rur.js":38,"./reload.js":50}],52:[function(require,module,exports){
 
@@ -10477,7 +10492,18 @@ record_id("reverse-step");
 
 
 RUR.listeners.step = function () {
+    if (RUR.state.code_evaluated) {
+        step();
+    } else {
+        $("#thought").show();
+        setTimeout(step, 15); //  enough time for thought bubble to appear
+    }
+};
+
+function step() {
     RUR.runner.run(RUR.rec.display_frame);
+    $("#thought").hide();
+
     $("#stop").removeAttr("disabled");
     $("#reverse-step").removeAttr("disabled");
     $("#frame-selector").removeAttr("disabled").addClass("enabled").removeClass("disabled");
@@ -10490,7 +10516,7 @@ RUR.listeners.step = function () {
 
     $("#open-solution-btn").attr("disabled", "true");
     $("#save-solution-btn").attr("disabled", "true");
-};
+}
 
 RUR.listeners.reverse_step = function () {
     RUR.current_frame_no -= 2;  // see below call to RUR.rec.display_frame
@@ -16104,6 +16130,7 @@ record_id("special-keyboard-button", "KEYBOARD BUTTON");
 record_id("more-menus-button", "ADDITIONAL OPTIONS");
 record_title("ui-dialog-title-more-menus", "ADDITIONAL OPTIONS");
 
+record_id("thinking", "THINKING")
 
 record_id("blockly-wrapper");
 record_id("move-handle");
@@ -16542,6 +16569,8 @@ ui_en["Cannot parse progress file."] = "Cannot parse progress file.";
 ui_en["Cannot merge progress."] = "Cannot merge progress.";
 ui_en["No solution found for this world."] = "No solution found for this world.";
 
+ui_en["THINKING"] = "Thinking ...";
+
 },{}],87:[function(require,module,exports){
 // the following is used in a few places below
 var mac_user_save_files_fr = ' <b>Utilisateurs Mac:</b> consultez <a href="https://github.com/aroberge/reeborg/blob/master/dev_tools/known_problems.md" target="_blank" rel="noopener">Problèmes connus</a>.';
@@ -16947,6 +16976,8 @@ ui_fr["Actual result"] = "Résultat observé";
 ui_fr["Cannot parse progress file."] = "Impossible d'extraire les données du fichier.";
 ui_fr["Cannot merge progress."] = "Impossible d'incorporer les données.";
 ui_fr["No solution found for this world."] = "Pas de solution trouvée pour ce monde.";
+
+ui_fr["THINKING"] = "Je pense ...";
 
 },{}],88:[function(require,module,exports){
 // the following is used in a few places below
@@ -17356,6 +17387,9 @@ ui_ko["Actual result"] = "Actual result";
 ui_ko["Cannot parse progress file."] = "Cannot parse progress file.";
 ui_ko["Cannot merge progress."] = "Cannot merge progress.";
 ui_ko["No solution found for this world."] = "No solution found for this world.";
+
+ui_ko["THINKING"] = "Thinking ...";
+
 },{}],89:[function(require,module,exports){
 // the following is used in a few places below
 var mac_user_save_files_en = ' <b>Mac users:</b> please see <a href="https://github.com/aroberge/reeborg/blob/master/dev_tools/known_problems.md" target="_blank" rel="noopener">Known problems</a>.';
@@ -17762,4 +17796,7 @@ ui_pl["Actual result"] = "Actual result";
 ui_pl["Cannot parse progress file."] = "Cannot parse progress file.";
 ui_pl["Cannot merge progress."] = "Cannot merge progress.";
 ui_pl["No solution found for this world."] = "No solution found for this world.";
+
+ui_pl["THINKING"] = "Thinking ...";
+
 },{}]},{},[16]);
