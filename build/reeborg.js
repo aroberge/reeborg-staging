@@ -3547,8 +3547,8 @@ require("./utils/path_utils.js");
 require("./world_api/decorative_objects.js");
 
 brython({debug:1, pythonpath:[RUR.BASE_URL + '/src/python']});
-if (__BRYTHON__.__MAGIC__ != "3.3.4") {
-    alert("Expecting Brython version 3.3.4 and got " + __BRYTHON__.__MAGIC__);
+if (__BRYTHON__.__MAGIC__ != "3.6.2") {
+    alert("Expecting Brython version 3.6.2 and got " + __BRYTHON__.__MAGIC__);
 }
 
 function probably_invalid(value) {
@@ -6889,9 +6889,9 @@ RUR.ReeborgError = function (message) {
         ){
         try { // see comment above
             if (["en", "fr-en", "ko-en"].indexOf(RUR.state.human_language) != -1) {
-                return ReeborgError_en(message);
+                return __BRYTHON__.$call(window.ReeborgError_en)(message);
             } else {
-                return ReeborgError_fr(message);
+                return __BRYTHON__.$call(window.ReeborgError_fr)(message);                
             }
         } catch (e) {}
     }
@@ -6905,9 +6905,9 @@ RUR.ReeborgOK = function (message) {
     if (RUR.state.programming_language == "python"){
         try { // see comment above
             if (["en", "fr-en", "ko-en"].indexOf(RUR.state.human_language) != -1) {
-                return ReeborgOK_en(message);
+                return __BRYTHON__.$call(window.ReeborgOK_en)(message);                
             } else {
-                return ReeborgOK_fr(message);
+                return __BRYTHON__.$call(window.ReeborgOK_fr)(message);
             }
         } catch (e) {}
     }
@@ -6921,9 +6921,9 @@ RUR.ReeborgOk = RUR.ReeborgOK; // preventing an annoying typo...
 RUR.WallCollisionError = function (message) {
     if (RUR.state.programming_language == "python"){
         if (["en", "fr-en", "ko-en"].indexOf(RUR.state.human_language) != -1) {
-            return WallCollisionError_en(message);
+            return __BRYTHON__.$call(window.WallCollisionError_en)(message);
         } else {
-            return WallCollisionError_fr(message);
+            return __BRYTHON__.$call(window.WallCollisionError_fr)(message);            
         }
     }
     this.name = "WallCollisionError";
@@ -6935,9 +6935,9 @@ RUR.WallCollisionError = function (message) {
 RUR.MissingObjectError = function (message) {
     if (RUR.state.programming_language == "python"){
         if (["en", "fr-en", "ko-en"].indexOf(RUR.state.human_language) != -1) {
-            return MissingObjectError_en(message);
+            return __BRYTHON__.$call(window.MissingObjectError_en)(message);
         } else {
-            return MissingObjectError_fr(message);
+            return __BRYTHON__.$call(window.MissingObjectError_fr)(message);
         }
     }
     this.name = "MissingObjectError";
