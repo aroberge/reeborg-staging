@@ -478,7 +478,7 @@ give_object = function () {
     give_number_result = parseInt($("#input-give-number").val(), 10);
     unlimited_number_result = $("#unlimited-number").prop("checked");
     if (unlimited_number_result){
-        query = Infinity;
+        query = "infinite";
     } else {
         query = give_number_result;
     }
@@ -520,7 +520,9 @@ RUR.give_object_to_robot = function (obj, nb, robot) {
     RUR.utils.ensure_key_for_obj_exists(robot, "objects");
 
     _nb = RUR.utils.filterInt(nb); // required for the menu-driven world editor
-    if (_nb >= 0) {
+    if (_nb == "infinite") {
+        robot.objects[obj] = _nb;
+    } else if (_nb >= 0) {
         if (_nb !== 0) {
             robot.objects[obj] = _nb;
         } else if (robot.objects[obj] !== undefined) {
@@ -12611,13 +12613,17 @@ RUR.is_valid_position = function(x, y) {
 https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/parseInt
 
 It is a stricter way than parseInt to extract integer values, and supports
-Infinity as a valid integer.
+the string "infinite" as a valid integer. We do not use the Javascript
+object Infinity as it cannot be serialized using JSON.
 
 See tests/unit_tests/utils/filterint.tests.js for tests illustrating sample
 uses.
 */
 RUR.utils.filterInt = function (value) {
-  if(/^(\-|\+)?([0-9]+|Infinity)$/.test(value)){
+  if (value == "infinite") {
+    return value;
+  }
+  if(/^(\-|\+)?([0-9]+)$/.test(value)){
     return Number(value);
   }
   return undefined;
