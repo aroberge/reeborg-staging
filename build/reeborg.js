@@ -5392,7 +5392,7 @@ RUR.color_condition = 240;
 RUR.done_colour = "#aa0000";
 
 /****  Begin over-riding Blockly's default */
-Blockly.Blocks.loops.HUE = 230;
+Blockly.Msg["LOOPS_HUE"] = 230;
 
 Blockly.JavaScript['text_print'] = function(block) {
   var argument0 = Blockly.JavaScript.valueToCode(block, 'TEXT',
@@ -5707,7 +5707,7 @@ RUR.blockly.init = function () {
       init: function() {
         this.appendDummyInput()
             .appendField(RUR.translate("star"))
-            .appendField(new Blockly.FieldImage("/src/images/star.png", 15, 15, RUR.translate("star")));
+            .appendField(new Blockly.FieldImage("src/images/star.png", 15, 15, RUR.translate("star")));
         this.setOutput(true, "String");
         this.setColour(0);
       }
@@ -6119,7 +6119,7 @@ RUR.blockly.getValue = function () {
 RUR.blockly.setValue = function (xml_text) {
     var xml = Blockly.Xml.textToDom(xml_text);
     RUR.blockly.workspace.clear();
-    Blockly.Xml.domToWorkspace(RUR.blockly.workspace, xml);
+    Blockly.Xml.domToWorkspace(xml, RUR.blockly.workspace);
 };
 
 },{"./../rur.js":39,"./../translator.js":41}],26:[function(require,module,exports){
