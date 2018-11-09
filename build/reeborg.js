@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 require("./../rur.js");
 require("./../world_api/things.js");
 
@@ -2071,16 +2071,18 @@ function draw_info () {
 
 function draw_correct_path (path, color) {
     "use strict";
-    var i, x, y, offset, prev_x, prev_y, ctx = RUR.OBJECTS_CTX; // below RUR.TRACE_CTX
+    var i, x, y, arrow_offset, offset, prev_x, prev_y, ctx = RUR.OBJECTS_CTX; // below RUR.TRACE_CTX
     ctx.strokeStyle = color;
     ctx.lineCap = "round";
 
     if(RUR.get_current_world().small_tiles) {
         offset = 12;
-        ctx.lineWidth = 1;
+        arrow_offset = 5;
+        // ctx.lineWidth = 1;
         ctx.setLineDash([2, 2]);
     } else {
         offset = 25;
+        arrow_offset = 8;
         ctx.lineWidth = 2;
         ctx.setLineDash([4, 4]);
     }
@@ -2099,6 +2101,7 @@ function draw_correct_path (path, color) {
     ctx.setLineDash([]);
 
     // draw arrows.
+    ctx.lineWidth = 1;
     x = path[0][0] * RUR.WALL_LENGTH + offset;
     y = RUR.HEIGHT - (path[0][1] + 1) * RUR.WALL_LENGTH + offset;
     for (i=1; i < path.length; i++){
@@ -2106,49 +2109,81 @@ function draw_correct_path (path, color) {
         prev_y = y;
         x = path[i][0] * RUR.WALL_LENGTH + offset;
         y = RUR.HEIGHT - (path[i][1] + 1) * RUR.WALL_LENGTH + offset;
-        draw_arrow(x, y, prev_x, prev_y, ctx);
+        draw_arrow(x, y, prev_x, prev_y, ctx, arrow_offset);
     }
 }
 
 
-function draw_arrow(x, y, prev_x, prev_y, ctx) {
-    var len = ctx.lineWidth * 3;
+function draw_arrow(x, y, prev_x, prev_y, ctx, arrow_offset) {
+    var len = ctx.lineWidth * 4;
     ctx.beginPath();
     if (x == prev_x) { // vertical arrow
-        y = (y + prev_y)/2; 
-        ctx.moveTo(x, y);
         if (y > prev_y) {
+            x -= arrow_offset;
+        } else {
+            x += arrow_offset;
+        }
+        y = (y + prev_y)/2; 
+        if (y > prev_y) {
+            y += arrow_offset;
+            ctx.moveTo(x, y);
             ctx.lineTo(x-len, y-len);
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(x+len, y-len);
             ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y - 2*arrow_offset);
+            ctx.stroke();            
         } else {
+            y -= arrow_offset;
+            ctx.moveTo(x, y);            
             ctx.lineTo(x-len, y+len);
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(x+len, y+len);
             ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + 2*arrow_offset);
+            ctx.stroke();              
         }
     } else {
-        x = (x + prev_x)/2;
-        ctx.moveTo(x, y);
         if (x > prev_x) {
+            y += arrow_offset;
+        } else {
+            y -= arrow_offset;
+        }
+        x = (x + prev_x)/2;
+        if (x > prev_x) {
+            x += arrow_offset;
+            ctx.moveTo(x, y);            
             ctx.lineTo(x-len, y-len);
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(x-len, y+len);
             ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - 2* arrow_offset, y);
+            ctx.stroke();  
         } else {
+            x -= arrow_offset
+            ctx.moveTo(x, y);
             ctx.lineTo(x+len, y-len);
             ctx.stroke();
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(x+len, y+len);
             ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + 2* arrow_offset, y);
+            ctx.stroke();              
         }
     }
 }
