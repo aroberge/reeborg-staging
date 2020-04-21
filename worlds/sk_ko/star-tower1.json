@@ -26,7 +26,7 @@
   ],
   "walls": {},
   "description": [
-    "Reeborg loves to build - today it is making Star Towers. It has plenty of stars, and wants to make towers that are 3 stars high. Write a program that creates a Star Tower at Reeborg's starting position, and every other x-position after that (odd x-values)."
+    "리보그는 건축하는 것을 좋아해요 - 오늘은 별의 탑을 만들고 있어요.  그는 충분히 많은 별을 갖고 있고, 3칸 정도 높이의 별 탑을 만들고 싶어해요. 리보그의 시작지점과 이후 다른 x좌표(홀수 x좌표)에서 별의 탑을 만드는 프로그램을 만드세요."
   ],
   "small_tiles": false,
   "rows": 4,

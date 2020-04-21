@@ -807,7 +807,7 @@ RUR.BASE_URL = RUR.BASE_URL || '';
 
 function set_images(images) {
     "use strict"
-    var default_images, east, west, north, south, robot, model = images.model;
+    var default_images, robot, model = images.model;
 
     default_images = {east: RUR.BASE_URL + '/src/images/robot_e.png',
         north: RUR.BASE_URL + '/src/images/robot_n.png',
@@ -1099,10 +1099,13 @@ RUR.vis_robot.draw = function (robot) {
             break;
         case -1:
             RUR.vis_robot.draw_random(robot);
+            break;
         default:
             image = RUR.vis_robot.e_img;
         }
-    RUR.ROBOT_CTX.drawImage(image, x, y, width, height);
+    if (robot._orientation != -1){
+        RUR.ROBOT_CTX.drawImage(image, x, y, width, height);
+    }
     if (RUR.state.editing_world){
         return;
     }
@@ -1208,7 +1211,7 @@ RUR.vis_robot.draw_trace_segment = function (segment) {
  * function described here is preferable as it can be used with either
  * Javascript or Python.
  *
- * @param {Object} images A Javascript object (similar to a Python dict) that
+ * @param {images} images A Javascript object (similar to a Python dict) that
  * holds the relevant attributes.
  *
  * @param {string} [images.model]  The model name of the robot. Integer values
@@ -1226,14 +1229,12 @@ RUR.vis_robot.draw_trace_segment = function (segment) {
  */
 
 RUR.new_robot_images = function (images) {
-    var model, random;
     if (images.model !== undefined) {
         if (images.model == -1) {
             throw new RUR.ReeborgError(RUR.translate("Robot model cannot be -1."));
         }
-        model = images.model;
     } else {
-        images.model = model = "anonymous";
+        images.model = "anonymous";
     }
     set_images(images);
 };
@@ -1302,7 +1303,7 @@ RUR.vis_world.refresh_world_edited = function () {
 
 RUR.set_world_size = function (max_x, max_y) {
     "use strict";
-    var height, width, canvas, ctx, world;
+    var height, width, canvas, world;
     set_scale();
 
     if (max_x !== undefined && max_y !== undefined) {
@@ -1572,8 +1573,7 @@ function draw_grid_walls (ctx, edit){
 
 function draw_border (ctx) {
     "use strict";
-    var j, image, wall, x_offset, y_offset, world;
-    world = RUR.get_current_world();
+    var j, image, wall, x_offset, y_offset;
     wall = RUR.THINGS["east_border"];
     image = wall.image;
     x_offset = wall.x_offset;
@@ -1803,7 +1803,7 @@ function draw_animated_images (){
 
 function draw_anim (objects, ctx) {
     "use strict";
-    var i, j, i_j, coords, flag, k, n, image, obj, obj_here, elem,
+    var i, j, i_j, coords, flag, k, n, obj, obj_here,
         recording_state, remove_flag, images_to_remove=[];
 
     flag = false;
@@ -1837,17 +1837,17 @@ function draw_anim (objects, ctx) {
         }
     }
 
+    // removing object normally result in the recording of a
+    // frame since we normally want the display to be updated
+    // to reflect the removal. Here, we are updating the display,
+    // and we do not want to trigger new frames recording: at this
+    // stage, we are playing back the recorded frames.
+    recording_state = RUR.state.do_not_record;
+    RUR.state.do_not_record = true;
     for (k=0; k < images_to_remove.length; k++){
-        // removing object normally result in the recording of a
-        // frame since we normally want the display to be updated
-        // to reflect the removal. Here, we are updating the display,
-        // and we do not want to trigger new frames recording: at this
-        // stage, we are playing back the recorded frames.
-        recording_state = RUR.state.do_not_record;
-        RUR.state.do_not_record = true;
         __remove_animated_object(images_to_remove[k]);
-        RUR.state.do_not_record = false;
     }
+    RUR.state.do_not_record = recording_state;
     return flag;
 }
 
@@ -1897,8 +1897,7 @@ function draw_coloured_tile (colour, i, j, ctx) {
 }
 
 function draw_single_object (image, i, j, ctx, x_offset, y_offset) {
-    var x, y, offset=RUR.WALL_THICKNESS/2, grid_size=RUR.WALL_LENGTH,
-        world = RUR.get_current_world();
+    var x, y, offset=RUR.WALL_THICKNESS/2, grid_size=RUR.WALL_LENGTH;
     if (x_offset === undefined) {
         x_offset = 0;
     }
@@ -1955,7 +1954,7 @@ function compile_info () {
     // compiles the information about objects and goal found at each
     // grid location, so that we can determine what should be
     // drawn - if anything.
-    var coords, obj, quantity, world = RUR.get_current_world();
+    var world = RUR.get_current_world();
     RUR.vis_world.information = {};
     RUR.vis_world.goal_information = {};
     RUR.vis_world.goal_present = false;
@@ -2020,7 +2019,7 @@ function compile_partial_info (objects, information, type){
 
 function draw_info () {
     var i, j, coords, keys, key, info, ctx;
-    var scale = RUR.WALL_LENGTH, Y = RUR.HEIGHT, text_width;
+    var scale = RUR.WALL_LENGTH, Y = RUR.HEIGHT;
 
     if (RUR.state.do_not_draw_info) {
         return;
@@ -2043,7 +2042,6 @@ function draw_info () {
             j = parseInt(coords[1], 10);
             info = RUR.vis_world.information[coords][1];
             if (i <= RUR.MAX_X && j <= RUR.MAX_Y){
-                text_width = ctx.measureText(info).width/2;
                 ctx.fillStyle = RUR.vis_world.information[coords][2];
                 // information drawn to left side of object
                 ctx.fillText(info, (i+0.2)*scale, Y - (j)*scale);
@@ -2059,7 +2057,6 @@ function draw_info () {
             j = parseInt(coords[1], 10);
             info = RUR.vis_world.goal_information[coords][1];
             if (i <= RUR.MAX_X && j <= RUR.MAX_Y){
-                text_width = ctx.measureText(info).width/2;
                 ctx.fillStyle = RUR.vis_world.goal_information[coords][2];
                 // information drawn to right side of object
                 ctx.fillText(info, (i+0.8)*scale, Y - (j)*scale);
@@ -2469,7 +2466,7 @@ require("./../utils/supplant.js");
 
 RUR._load_world_from_program = function (url, shortname) {
     "use strict";
-    var selected, possible_url, new_world=false, new_selection=false;
+    var selected, possible_url, new_world=false;
     RUR.file_io_status = undefined;
 
     //this is only for the Javascript version; Python will intercept
@@ -2497,7 +2494,6 @@ RUR._load_world_from_program = function (url, shortname) {
         return;
     } else if (RUR.world_selector.url_from_shortname(shortname)!==undefined){
         url = RUR.world_selector.url_from_shortname(shortname);
-        new_selection = shortname;
     }  else {
         new_world = shortname;
     }
@@ -2625,7 +2621,7 @@ RUR.kbd.insert_in_console = function (txt) {
 
 RUR.kbd.insert = function (txt){
     "use strict";
-    var doc, cursor, line, pos;
+    var doc, cursor, pos;
     if (RUR.state.input_method==="py-repl") {
         RUR.kbd.insert_in_console(txt);
         return;
@@ -2637,7 +2633,6 @@ RUR.kbd.insert = function (txt){
         doc = library;
     }
     cursor = doc.getCursor();
-    line = doc.getLine(cursor.line);
     pos = { // create a new object to avoid mutation of the original selection
        line: cursor.line,
        ch: cursor.ch // set the character position to the end of the line
@@ -3040,7 +3035,7 @@ RUR.we.edit_world = function  () {
     "use strict";
     // usually triggered when canvas is clicked if editing world;
     // call explicitly if needed.
-    var value, split, root, x, y, position;
+    var value, split, root;
     split = RUR.we.edit_world_selection.split("-");
     root = split[0];
     value = split[1];
@@ -3335,7 +3330,7 @@ RUR.we.turn_robot = function (orientation) { // function used on reeborg.html
 };
 
 function calculate_wall_position () {
-    var ctx, x, y, orientation, remain_x, remain_y, del_x, del_y;
+    var x, y, orientation, remain_x, remain_y, del_x, del_y;
     x = RUR.mouse_x - $("#robot-anim-canvas").offset().left;
     y = RUR.mouse_y - $("#robot-anim-canvas").offset().top;
 
@@ -3448,7 +3443,7 @@ function add_goal_object (specific_object){
 RUR.we.set_goal_position = function (home){
     // will remove the position if clicked again.
     "use strict";
-    var position, world=RUR.get_current_world(), robot, arr=[], pos, present=false, goal;
+    var position, world=RUR.get_current_world(), arr=[], pos, present=false, goal;
 
     $("#cmd-result").html(RUR.translate("Click on world to set home position for robot.")).effect("highlight", {color: "gold"}, 1500);
 
@@ -3525,8 +3520,6 @@ function toggle_tile (name){
 
 function fill_with_tile (name) {
     "use strict";
-    var x, y;
-
     if (!name) {    // if we cancel the dialog
         return;
     } else if (name === "colour") {
@@ -3625,7 +3618,7 @@ RUR.state.session_initialized = false;
 
 function start_session () {
     "use strict";
-    var url, name;
+    var url;
     set_initial_state();
     set_editor();
     set_library();
@@ -3669,7 +3662,7 @@ function set_initial_state() {
            3. site defaults.
             
     */
-    var url_query, last_name, last_url, url;
+    var url_query;
 
     url_query = RUR.permalink.parseUri(window.location.href);
     if (url_query.queryKey === undefined) {  // should be set but just in case...
@@ -4903,7 +4896,7 @@ $(document).ready(function () {
 
 
 function handleMouseMove(evt) {
-    var x, y, hit, position, world, robot, mouse_above_robot, image, nb_obj;
+    var i, j, x, y, position, world, robot, mouse_above_robot, image, nb_obj;
     var size = 40, objects_carried;
 
     world = RUR.get_current_world();
@@ -4965,7 +4958,7 @@ function handleMouseMove(evt) {
 }
 
 RUR.calculate_grid_position = function () {
-    var ctx, x, y;
+    var x, y;
     x = RUR.mouse_x - $("#robot-anim-canvas").offset().left;
     y = RUR.mouse_y - $("#robot-anim-canvas").offset().top;
 
@@ -5003,7 +4996,7 @@ var record_id = require("./../../lang/msg.js").record_id;
 record_id("memorize-world", "Save world in browser");
 
 memorize_world = function () {
-    var existing_names, i, key, response;
+    var existing_names, i, key;
 
     existing_names = '';
     for (i = 0; i <= localStorage.length - 1; i++) {
@@ -6214,15 +6207,7 @@ RUR._inspect_ = function (obj){
             result += typeof(obj[props]) + "</td></tr>";
         }
     }
-    if (result == head) {
-        if (result == "[object Object]") {
-            result = "{}";
-        } else {
-            result = "<pre>" + obj.toString() + "</pre>";
-        }
-    } else {
-        result += "</table>";
-    }
+    result += "</table>";
     RUR._print_html_(result, true); // true will replace existing content
 };
 
@@ -6471,8 +6456,8 @@ RUR.control = {};
 
 RUR.control.move = function (robot) {
     "use strict";
-    var position, next_x, next_y, orientation, pushable_in_the_way, tile, tiles,
-        x_beyond, y_beyond, recording_state, next_position, current_x, current_y,
+    var position, next_x, next_y, pushable_in_the_way,
+        x_beyond, y_beyond, next_position, current_x, current_y,
         message;
 
     if (RUR.control.wall_in_front(robot)) {
@@ -6580,7 +6565,8 @@ RUR.control.done = function () {
 };
 
 RUR.control.put = function(robot, arg){
-    var arg_in_english, objects_carried, obj_type, all_objects;
+    "use strict";
+    var arg_in_english, all_objects;
     RUR.state.sound_id = "#put-sound";
     arg_in_english = confirm_object_is_known(arg);
     all_objects = get_names_of_objects_carried(robot.objects);
@@ -6590,7 +6576,8 @@ RUR.control.put = function(robot, arg){
 };
 
 RUR.control.toss = function(robot, arg){
-    var arg_in_english, objects_carried, obj_type, all_objects;
+    "use strict";
+    var arg_in_english, all_objects;
     arg_in_english = confirm_object_is_known(arg);
     all_objects = get_names_of_objects_carried(robot.objects);
     put_check_for_error (arg, arg_in_english, all_objects, robot.objects);
@@ -6810,7 +6797,7 @@ RUR.control.wall_on_right = function (robot) {
 
 
 RUR.control.front_is_clear = function(robot){
-    var tile, tiles, solid, name, position, next_x, next_y;
+    var position, next_x, next_y;
     if( RUR.control.wall_in_front(robot)) {
         return false;
     }
@@ -7761,7 +7748,7 @@ require("./../utils/supplant.js");
 var identical = require("./../utils/identical.js").identical;
 
 function update_trace_history() {
-    var world = RUR.get_current_world();
+    var robot, world = RUR.get_current_world();
     if (world.robots !== undefined){
         for (robot of world.robots) { // jshint ignore:line
             update_robot_trace_history(robot);
@@ -7971,6 +7958,7 @@ RUR.set_lineno_highlight = function(lineno) {
         RUR.record_frame("highlight", lineno);
     }
     RUR.prev_line_no = RUR.current_line_no;
+    return true;
 };
 
 function update_editor_highlight(frame_no) {
@@ -7991,7 +7979,7 @@ function update_editor_highlight(frame_no) {
 RUR.rec.display_frame = function () {
     // set current world to frame being played.
     "use strict";
-    var frame, goal_status;
+    var frame;
 
     $("#thought").hide();
 
@@ -8118,10 +8106,6 @@ RUR.rec.conclude = function () {
 
 RUR.rec.handle_error = function (frame) {
     "use strict";
-    var world;
-
-    world = RUR.get_current_world();
-
     if (frame.error.reeborg_shouts === RUR.translate("Done!")){
         if (frame.world_map.goal !== undefined){
             return RUR.rec.conclude();
@@ -8149,7 +8133,8 @@ RUR.rec.handle_error = function (frame) {
 
 RUR.rec.check_current_world_status = function() {
     // this function is to check goals from the Python console.
-    frame = {};
+    "use strict";
+    var frame = {}, goal_status;
     frame.world_map = RUR.get_current_world();
     if (frame.world_map.goal === undefined){
         if (RUR.success_custom_message !== undefined) {
@@ -8262,7 +8247,7 @@ require("./../world_utils/import_world.js"); // for process_onload
 require("./../drawing/visible_robot.js"); // for RUR.reset_default_robot_images
 
 RUR.reset_world = function() {
-    var world;
+    var i;
     RUR.reset_pre_run_defaults();
     $("#thought").hide(); // just in case
     RUR.success_custom_message = undefined;
@@ -8290,7 +8275,6 @@ RUR.reset_world = function() {
     }
 
     RUR.set_current_world(RUR.clone_world(RUR.WORLD_BEFORE_ONLOAD));
-    world = RUR.get_current_world();
     RUR.world_utils.process_onload();
 };
 
@@ -8479,7 +8463,8 @@ RUR.runner.run = function (playback) {
 
 /* RUR.runner.eval returns true if a fatal error is found, false otherwise */
 RUR.runner.eval = function(src) {  // jshint ignore:line
-    var message, response, other_info, from_python, error;
+    "use strict";
+    var message, response, other_info, error;
     other_info = '';
 
     /* At some point around version 3.2.0, Brython changed the way it
@@ -8686,7 +8671,8 @@ RUR.runner.find_line_number = function(bad_code) {
 
 
 RUR.runner.check_colons = function(line_of_code) {
-    var tokens, line, nb_token;
+    "use strict";
+    var tokens, nb_token;
     tokens = ['if ', 'if(', 'else', 'elif ','elif(','while ','while(',
               'for ','for(', 'def '];
     for (nb_token=0; nb_token < tokens.length; nb_token++){
@@ -9278,7 +9264,7 @@ RUR.get_current_world = function () {
 
 RUR.world_map = function () {
     "use strict";
-    var world, to_remove, i;
+    var world, i;
     // clone the world so as not to modify the original
     world = JSON.parse(JSON.stringify(RUR.get_current_world()));
     // we don't need the editor content
@@ -9717,7 +9703,7 @@ RUR.custom_world_select = {};
 
 RUR.custom_world_select.make = function (contents) {  // aka RUR._MakeCustomMenu_
     "use strict";
-    var i, url, last_menu;
+    var i;
 
     RUR.state.creating_menu = true;
     RUR.world_selector.empty_menu();
@@ -9737,7 +9723,7 @@ RUR.custom_world_select.make = function (contents) {  // aka RUR._MakeCustomMenu
 
 function load_user_worlds() {
     var key, name, i;
-    
+
     for (i = localStorage.length - 1; i >= 0; i--) {
         key = localStorage.key(i);
         if (key.slice(0, 11) === "user_world:") {
@@ -9752,15 +9738,18 @@ RUR.make_default_menu = function(language) {
     if (RUR.state.session_initialized) {
         RUR.state.world_url = undefined;
         RUR.state.world_name = undefined;
-        RUR.state.current_menu = undefined;   
+        RUR.state.current_menu = undefined;
     }
 
     switch (language) {
         case 'en':
         case 'fr-en':
-        case 'ko-en':
             RUR.initial_defaults.initial_menu = RUR.BASE_URL + RUR.DEFAULT_MENU_EN;
             RUR.load_world_file(RUR.BASE_URL + RUR.DEFAULT_MENU_EN);
+            break;
+        case 'ko-en':
+            RUR.initial_defaults.initial_menu = RUR.BASE_URL + RUR.DEFAULT_MENU_KO;
+            RUR.load_world_file(RUR.BASE_URL + RUR.DEFAULT_MENU_KO);
             break;
         case 'fr':
         case 'en-fr':
@@ -9772,7 +9761,7 @@ RUR.make_default_menu = function(language) {
             RUR.load_world_file(RUR.BASE_URL + RUR.DEFAULT_MENU_CN);
             RUR.initial_defaults.initial_menu = RUR.BASE_URL + RUR.DEFAULT_MENU_CN;
             break;
-        default: 
+        default:
             RUR.load_world_file(RUR.BASE_URL + RUR.DEFAULT_MENU_EN);
             RUR.initial_defaults.initial_menu = RUR.BASE_URL + RUR.DEFAULT_MENU_EN;
     }
@@ -10173,7 +10162,7 @@ RUR.listeners['human-language'] = function() {
 
 },{"./../../lang/msg.js":87,"./../permalink/permalink.js":21,"./../programming_api/blockly.js":25,"./../programming_api/reeborg_cn.js":30,"./../programming_api/reeborg_en.js":31,"./../programming_api/reeborg_fr.js":32,"./../rur.js":39,"./../ui/custom_world_select.js":43}],48:[function(require,module,exports){
 /*  Original idea from Dan Schellenberg for saving and loading a solution
-    using standard keyboard shortcuts using the world's name as base file name 
+    using standard keyboard shortcuts using the world's name as base file name
     and, if using Python, include the code from the library in the saved file.
 */
 
@@ -10188,7 +10177,7 @@ function saveSolution() {
     code in the library) for a given world in a single file.
 
     The base file name is taken to be the World's name, as it appears
-    in the html selector. 
+    in the html selector.
     */
     var blob, extension, filename, filetype, parts, selectedWorld;
 
@@ -10196,7 +10185,7 @@ function saveSolution() {
 
     filename = selectedWorld.options[selectedWorld.selectedIndex].text;
     // If the world was loaded from a URL without using a second argument
-    // the filename might contain "/" which is an invalid filename character    
+    // the filename might contain "/" which is an invalid filename character
     if (filename.indexOf("/") !== -1) {
         parts = filename.split("/");
         filename = parts[parts.length-1];
@@ -10216,15 +10205,15 @@ function saveSolution() {
             filetype = "text/xml;charset=utf-8";
             extension = ".xml";
             content = RUR.blockly.getValue();
-            break;                 
+            break;
         case "javascript":
             filetype = "text/javascript;charset=utf-8";
             extension = ".js";
             content = editor.getValue();
-            break;      
+            break;
         case "py-repl":
             alert(RUR.translate("No solution can be saved when using REPL (Py)."));
-            return;  
+            return;
     }
 
     blob = new Blob([content], {type: filetype});
@@ -10253,13 +10242,13 @@ function loadSolution () {
                 case "blockly-py":
                 case "blockly-js":
                     target = RUR.blockly;
-                    break;   
+                    break;
                 case "py-repl":
                     alert(RUR.translate(
                             "No solution can be loaded when using REPL (Py).")
                          );
-                    return;                  
-            }   
+                    return;
+            }
             content = reader.result;
             parts = content.split(RUR.library_separator());
             if (parts.length == 2) {
@@ -10270,6 +10259,21 @@ function loadSolution () {
         };
 
         file = fileInput.files[0];
+        // We assume that the file name has been saved with the default
+        //    world name.py
+        // where "world name" is the name of the corresponding world as
+        // shown in the HTML select. We thus remove the .py extension
+        // and try to load that world, for convenience.
+        let worldToLoad = file.name.split(".")[0];
+        let worldURL = RUR.world_selector.url_from_shortname(worldToLoad);
+        if (worldURL !== undefined) {
+            RUR.world_selector.set_url(worldURL);
+        }
+        //It could be a good idea to provide a UI dialogue if the world can't auto-load?
+        // else {
+        //     alert("Can't auto-load the correct world file... please select the correct world from the menu."));
+        // }
+        RUR.reload();
         reader.readAsText(file);
     });
 }
@@ -11003,7 +11007,7 @@ function _get_programming_method() {
 
  */
 function _retrieve_progress () {
-    var prog_method, progress, user_progress, valid_methods, i, method;
+    var prog_method, progress, user_progress, valid_methods, i;
     valid_methods = ["python", "javascript", "blockly"];
     progress = localStorage.getItem("user-progress");
     prog_method = _get_programming_method();
@@ -11667,7 +11671,7 @@ function fit_non_overlapping_rooms(world_width, world_height) {
        for putting rooms that are entirely contained with the world and
         do not overlap with each other */
     "use strict";
-    var i, nb_attempts, nb_rooms, nb_rooms_goal, overlap, room, x, y, xx, yy, width, height,
+    var i, nb_attempts, nb_rooms, nb_rooms_goal, overlap, x, y, xx, yy, width, height,
         maze;
 
     maze = RUR.get_current_world().maze;
@@ -12031,7 +12035,7 @@ RUR.print_path = function () {
 };
 
 function compute_path(x_init, y_init, history) {
-    var x, y, prev_x, prev_y, path;
+    var i, x, y, prev_x, prev_y, path;
 
     prev_x = x_init;
     prev_y = y_init;
@@ -12560,7 +12564,7 @@ RUR.Graph = function (options) {
 
 function get_turn (current, neighbour) {
     "use strict";
-    var action, direction, to_direction;
+    var direction, to_direction;
     direction = current[2];
     to_direction = neighbour[2];
     switch (direction) {
@@ -12695,6 +12699,7 @@ RUR.utils.filterInt = function (value) {
 require("./../rur.js");
 
 RUR.animate_images = function (obj) {
+    var i;
     for (i=0; i < obj.images.length; i++){
         obj["image"+i] = new Image();
         obj["image"+i].src = obj.images[i];
@@ -12977,7 +12982,7 @@ RUR._add_artefact = function (args) {
  */
 RUR._get_artefacts = function(args) {
     "use strict";
-    var base, coords, container, world = RUR.get_current_world();
+    var coords, container, world = RUR.get_current_world();
 
     ensure_valid_position(args);
     if (args.type === undefined) {
@@ -13324,7 +13329,7 @@ RUR.clear_background = function() {
  */
 
 RUR.fill_background = function(name) {
-    var add, recording_state = RUR._recording_(false);
+    var x, y, add, recording_state = RUR._recording_(false);
     if(RUR.KNOWN_THINGS.indexOf(RUR.translate_to_english(name)) === -1){
         add = RUR.add_colored_tile;
     } else {
@@ -13520,7 +13525,7 @@ RUR.get_background_tile = function (x, y) {
 
 RUR.is_background_tile = function (name, x, y) {
     "use strict";
-    var tile, args = {x:x, y:y, type:"tiles"};
+    var tile;
     tile = RUR.get_background_tile(x, y); // returns translated name
     if (tile === null) {
         return false;
@@ -13909,7 +13914,7 @@ RUR.get_protections = function (robot) {
     var objects_carried, obj_type, protections;
 
     objects_carried = RUR.control.carries_object(robot);
-    if (!objects_carried || !Object.keys(objects_carried)) {
+    if (objects_carried == 0) {
         return [];
     }
 
@@ -13994,7 +13999,7 @@ RUR.is_fatal_position = function (x, y, robot){
  */
 RUR.is_detectable_position = function (x, y){
     "use strict";
-    var detectable, tile, tiles;
+    var tile, tiles;
 
     /* Both obstacles and background tiles can be detectable;
        we combine both in a single array here */
@@ -14691,7 +14696,7 @@ RUR.get_robot_by_id = function (id) {
 
 RUR.get_robot_location = function (robot_body) {
     "use strict";
-    var x, y, orientation;
+    var orientation;
     if (!robot_body || robot_body.x === undefined || robot_body.y === undefined ||
         robot_body._orientation === undefined) {
         throw new Error("robot body needed as argument for RUR.get_location().");
@@ -14951,7 +14956,7 @@ RUR.remove_initial_position = function (x, y) {
 
 RUR.set_random_orientation = function (robot_body) {
     "use strict";
-    var pos, world=RUR.get_current_world();
+    var world=RUR.get_current_world();
     if (robot_body === undefined) {
         if (world.robots === undefined || world.robots.length < 1) {
             throw new RUR.ReeborgError("This world has no robot; cannot set random orientation.");
@@ -15386,7 +15391,6 @@ RUR.get_walls = function(x, y, options) {
  *
  */
 RUR.is_wall = function(orientation, x, y, options) {
-    var args;
     if (["east", "north", "west", "south"].indexOf(RUR.translate_to_english(orientation)) === -1) {
         throw new RUR.ReeborgError(
             RUR.translate("Invalid orientation.").supplant({orient:orientation}));
@@ -15604,7 +15608,7 @@ RUR.world_get.world_info = function (show_info_at_location) {
     // In addition shows the information about a given grid position
     // when the user clicks on the canvas at that grid position.
     // If a global flag is set, it also show the various editors content.
-    var content, description, goals, information, insertion, to_replace, topic;
+    var content, description, goals, information, insertion, to_replace;
     var no_object, obj, r, robot, robots, x, y;
 
     // Default value if not description is provided:
@@ -15753,7 +15757,7 @@ RUR.world_get.world_info = function (show_info_at_location) {
     $('.world_info_source').each(function() {
         var $this = $(this), $code = $this.text();
         $this.empty();
-        var myCodeMirror = CodeMirror(this, {
+        CodeMirror(this, {
             value: $code,
             mode:  RUR.state.programming_language,
             lineNumbers: !$this.is('.inline'),
@@ -15764,7 +15768,7 @@ RUR.world_get.world_info = function (show_info_at_location) {
     $('.world_info_onload').each(function() {
         var $this = $(this), $code = $this.text();
         $this.empty();
-        var myCodeMirror = CodeMirror(this, {
+        CodeMirror(this, {
             value: $code,
             mode:  RUR.state.onload_programming_language,
             lineNumbers: !$this.is('.inline'),
@@ -15777,7 +15781,7 @@ RUR.world_get.world_info = function (show_info_at_location) {
     $('.python').each(function() {
         var $this = $(this), $code = $this.text();
         $this.empty();
-        var myCodeMirror = CodeMirror(this, {
+        CodeMirror(this, {
             value: $code,
               mode: {
                 name: "python",
@@ -15791,7 +15795,7 @@ RUR.world_get.world_info = function (show_info_at_location) {
     $('.javascript').each(function() {
         var $this = $(this), $code = $this.text();
         $this.empty();
-        var myCodeMirror = CodeMirror(this, {
+        CodeMirror(this, {
             value: $code,
             mode:  'javascript',
             lineNumbers: !$this.is('.inline'),
@@ -15802,7 +15806,7 @@ RUR.world_get.world_info = function (show_info_at_location) {
     $('.html').each(function() {
         var $this = $(this), $code = $this.text();
         $this.empty();
-        var myCodeMirror = CodeMirror(this, {
+        CodeMirror(this, {
             value: $code,
             mode:  "htmlmixed",
             lineNumbers: !$this.is('.inline'),
@@ -15845,10 +15849,8 @@ function get_info_about_location() {
     need_heading = true;
     if (tile){
         if (RUR.translate(tile.info)) {
-            if (need_heading) {
-                need_heading = false;
-                grid_info += special_info_about_location;
-            }
+            need_heading = false;
+            grid_info += special_info_about_location;
             grid_info += RUR.translate(tile.info) + "<br>";
         }
     }
@@ -15918,7 +15920,7 @@ function get_info_about_location() {
                 }
             }
         }
-        if (goals.walls !== undefined && coords) {
+        if (goals.walls !== undefined) {
             if (goals.walls[coords] !== undefined){
                 if (goals.walls[coords].indexOf("east") != -1) {
                     if (need_heading){
@@ -15958,14 +15960,11 @@ function get_info_about_location() {
                     grid_info += RUR.translate("A wall must be built south of this location.") + "<br>";
                 }
             }
-            y += 1;
-            coords = x + "," + y;
         }
     }
 
     return grid_info + '</div>';
 }
-
 
 $(document).ready(function () {
  RUR.create_and_activate_dialogs( $("#world-info-button"), $("#World-info"),
@@ -16027,7 +16026,7 @@ var edit_robot_menu = require("./../ui/edit_robot_menu.js");
 
 RUR.world_utils.import_world = function (json_string) {
     "use strict";
-    var body, editor_content, library_content, i, keys, more_keys, coord, index, obstacles;
+    var body;
 
     RUR.hide_end_dialogs();
 
@@ -16089,11 +16088,11 @@ function show_onload_feedback (e, lang) {
         if (window.translate_python === undefined) {
             return;
         }
-        lang_info = "Invalid Python code in Onload editor";
+        lang_info = RUR.translate("Invalid Python code in Onload editor");
     } else {
-        lang_info = "Invalid Javascript code in Onload editor";
+        lang_info = RUR.translate("Invalid Javascript code in Onload editor");
     }
-    RUR.show_feedback("#Reeborg-shouts", e.message + "<br>" +
+    RUR.show_feedback("#Reeborg-shouts", lang_info + "<br>" + e.message + "<br>" +
         RUR.translate("Problem with onload code.") + "<pre>" +
         RUR.CURRENT_WORLD.onload + "</pre>");
 }
@@ -16154,6 +16153,7 @@ RUR.world_utils.process_onload = process_onload;
 function convert_old_worlds () {
     // TODO: convert goal.possible_positions to goal.possible_final_positions ?
     // TODO: convert start_positions to possible_initial_positions ?
+    var i, index, coord, keys;
 
     // Backward compatibility following change done on Jan 5, 2016
     // top_tiles has been renamed obstacles (and prior to that [or after?],
@@ -17430,7 +17430,7 @@ ui_fr[" is not a valid value!"] = " n'est pas une valeur valide!";
 ui_fr["Enter number of objects desired at that location."] = "Cliquez sur le monde pour fixer le nombre d'objet <code>{obj}</code> désiré à cet endroit.";
 ui_fr["Objects found here:"] = "Objets trouvés ici:";
 ui_fr["Description"] = "Description";
-ui_fr["A robot located here carries no objects."] = "A robot situé à (x, y) = ({x}, {y}) ne transporte aucun objet.";
+ui_fr["A robot located here carries no objects."] = "Un robot situé à (x, y) = ({x}, {y}) ne transporte aucun objet.";
 ui_fr["A robot located here carries:"] = "Un robot situé à (x, y) = ({x}, {y}) transporte:";
 ui_fr["random location"] = "une position choisie au hasard";
 ui_fr["Enter number of objects to give to robot."] = "Quel nombre de <code>{obj}</code> voulez-vous donner au robot?";
@@ -17783,7 +17783,7 @@ ko_to_en["울타리 vertical"] = "fence_vertical";
 ui_ko["Invalid Javascript code in Onload editor"] = "유효하지 않은 자바스크립트 onload 코드입니다; 이 월드의 제작자에게 연락하세요.";
 ui_ko["Invalid Python code in Onload editor"] = "유효하지 않은 파이썬 onload 코드입니다; 이 월드의 제작자에게 연락하세요.";
 
-ui_ko["Too many steps:"] = "너무 많은 steps: {max_steps}<br>Use <code>set_max_nb_steps(nb)</code> to increase the limit.";
+ui_ko["Too many steps:"] = "단계가 너무 많습니다: {max_steps}<br>한계를 높이려면 <code>set_max_nb_steps(nb)</code>를 사용하십시오.";
 ui_ko["<li class='success'>Reeborg is at the correct x position.</li>"] = "<li class='success'>리보그는 올바른 x 위치에 있습니다. </li>";
 ui_ko["<li class='failure'>Reeborg is at the wrong x position.</li>"] = "<li class='failure'>리보그는 잘못된 x 위치에 있습니다. </li>";
 ui_ko["<li class='success'>Reeborg is at the correct y position.</li>"] = "<li class='success'>리보그는 올바른 y 위치에 있습니다. </li>";
@@ -18031,7 +18031,7 @@ ui_ko["mg-objects"] = "객체";
 
 ui_ko["Reeborg says: I'm done!"] = "리보그 : 다했어요";
 ui_ko["Reeborg writes:"] = "리보그 쓰기:";
-ui_ko["Reeborg shouts: Something is wrong!"] = "리보그 : 뭔가가 잘못 됬어요!";
+ui_ko["Reeborg shouts: Something is wrong!"] = "리보그의 외침: 뭔가 잘못 되었어!";
 ui_ko["Reeborg explores some Javascript code"] = "리보그는 일부 자바스크립트 코드를 조사했습니다";
 ui_ko["Reeborg states:"] = "리보그 상태:";
 ui_ko["Reeborg watches some variables!"] = "리보그는 몇가지의 변수를 보고 있습니다!";
@@ -18094,7 +18094,7 @@ ui_ko["No solution can be loaded when using REPL (Py)."] = "No solution can be l
 ui_ko["You are not allowed to use <code>done</code> in this world!"] = "You are not allowed to use <code>done()</code> in this world!";
 ui_ko["Execution ended before the <em>Post</em> code was executed."] = "Execution ended before the <em>Post</em> code was executed.";
 
-ui_ko["Difficulty level"] = "Difficulty level";
+ui_ko["Difficulty level"] = "난이도";
 
 ui_ko["Expected result"] = "Expected result";
 ui_ko["Differences highlighted"] = "Differences highlighted";
@@ -18104,7 +18104,7 @@ ui_ko["Cannot parse progress file."] = "Cannot parse progress file.";
 ui_ko["Cannot merge progress."] = "Cannot merge progress.";
 ui_ko["No solution found for this world."] = "No solution found for this world.";
 
-ui_ko["THINKING"] = "Thinking ...";
+ui_ko["THINKING"] = "생각 중";
 
 },{}],92:[function(require,module,exports){
 // the following is used in a few places below
